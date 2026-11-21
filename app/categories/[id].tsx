@@ -29,6 +29,7 @@ export default function CategoryListingScreen() {
     bags: 'bags',
     accessories: 'categoryAccessories',
     dresses: 'categoryDresses',
+    'shoes-bags': 'shoesAndBags',
   };
   const titleKey = titleKeyMap[id] ?? id;
   const title = t(titleKey as any);
