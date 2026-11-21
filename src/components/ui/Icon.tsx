@@ -32,7 +32,8 @@ export type IconName =
   | "help"
   | "edit"
   | "trash"
-  | "eye";
+  | "eye"
+  | "eye-off";
 
 const FEATHER: Record<IconName, React.ComponentProps<typeof Feather>["name"]> = {
   home: "home",
@@ -63,6 +64,7 @@ const FEATHER: Record<IconName, React.ComponentProps<typeof Feather>["name"]> = 
   edit: "edit-3",
   trash: "trash-2",
   eye: "eye",
+  "eye-off": "eye-off",
 };
 
 export interface IconProps {

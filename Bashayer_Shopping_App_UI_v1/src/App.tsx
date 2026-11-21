@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 type Lang = "ar" | "en";
 type Screen =
@@ -340,7 +340,7 @@ export default function App() {
   };
   const toggleFavorite = (id: number) => {
     setFavorites((f) => (f.includes(id) ? f.filter((x) => x !== id) : [...f, id]));
-    notify(t("تم تحديث قائمة المفضلة", "Wishlist updated"));
+    notify(t("تم تحديث قائمة الأمنيات", "Wishlist updated"));
   };
   const addToCart = (id = 1) => {
     if (!cart.includes(id)) setCart((c) => [...c, id]);
@@ -608,9 +608,7 @@ function HomeHeader({
       <div className="account-strip">
         <button className="search-trigger" onClick={onSearch}>
           <Icon name="search" size={18} />
-          <span>
-            {t("ابحثي عن فستان، حقيبة، أو علامة...", "Search dresses, bags or brands...")}
-          </span>
+          <span>{t("ابحثي عن فستان، حقيبة، أو علامة...", "Search dresses, bags or brands...")}</span>
         </button>
         {loggedIn ? (
           <button className="account-link" onClick={onLogout}>
@@ -662,8 +660,8 @@ function getTitle(screen: Screen, t: (a: string, b: string) => string) {
   const map: Record<Screen, [string, string]> = {
     home: ["الرئيسية", "Home"],
     categories: ["الأقسام", "Categories"],
-    wishlist: ["قائمة المفضلة", "Wishlist"],
-    cart: ["السلة", "Cart"],
+    wishlist: ["قائمة الأمنيات", "Wishlist"],
+    cart: ["سلة التسوق", "Shopping Bag"],
     profile: ["حسابي", "My Profile"],
     search: ["البحث", "Search"],
     product: ["تفاصيل القطعة", "Product Details"],
@@ -932,7 +930,7 @@ function WishlistScreen({ t, ids, price, remove, add, go }: any) {
             <div className="row-actions">
               <button className="primary-small" onClick={() => add(p.id)}>
                 <Icon name="bag" size={16} />
-                {t("أضيفي للسلة", "Add to cart")}
+                {t("أضيفي للسلة", "Add to bag")}
               </button>
               <button className="square-btn" onClick={() => remove(p.id)}>
                 <Icon name="trash" size={17} />
@@ -952,7 +950,7 @@ function CartScreen({ t, ids, quantity, setQuantity, price, go, onCheckout }: an
     return (
       <EmptyState
         icon="bag"
-        title={t("حقيبتك فارغة", "Your bag is empty")}
+        title={t("سلتك فارغة", "Your bag is empty")}
         text={t(
           "ابدئي بإضافة قطعك المفضلة، وسنحتفظ بها هنا.",
           "Add your favorite pieces and we’ll keep them here.",
@@ -1002,7 +1000,7 @@ function CartScreen({ t, ids, quantity, setQuantity, price, go, onCheckout }: an
         <button>{t("تطبيق", "Apply")}</button>
       </div>
       <div className="summary-card">
-        <h3>{t("ملخص الحقيبة", "Bag summary")}</h3>
+        <h3>{t("ملخص السلة", "Bag summary")}</h3>
         <SummaryRow label={t("المجموع الفرعي", "Subtotal")} value={price(subtotal)} />
         <SummaryRow label={t("الخصومات", "Discounts")} value={t("—", "—")} />
         <SummaryRow
@@ -1061,7 +1059,7 @@ function ProfileScreen({ t, loggedIn, go, login, logout }: any) {
     );
   const links = [
     ["box", t("طلباتي", "My orders"), "orders"],
-    ["heart", t("قائمة المفضلة", "My wishlist"), "wishlist"],
+    ["heart", t("قائمة الأمنيات", "My wishlist"), "wishlist"],
     ["pin", t("عناويني", "My addresses"), "settings"],
     ["settings", t("الإعدادات", "Settings"), "settings"],
     ["help", t("المساعدة والأسئلة الشائعة", "Support & FAQ"), "settings"],
@@ -1274,7 +1272,7 @@ function ProductScreen({
         </p>
         <button className="primary-btn add-btn" onClick={add}>
           <Icon name="bag" />
-          {t("أضيفي إلى الحقيبة", "Add to bag")}
+          {t("أضيفي إلى السلة", "Add to bag")}
           <span>{price(429)}</span>
         </button>
         <div className="accordions">
@@ -1401,6 +1399,182 @@ function SizeGuide({ t, unit, setUnit }: any) {
 
 function AuthScreen({ mode, t, go, onSuccess }: any) {
   const login = mode === "login";
+  const [stage, setStage] = useState<"form" | "otp" | "success">("form");
+  const [countryOpen, setCountryOpen] = useState(false);
+  const [country, setCountry] = useState({
+    code: "+966",
+    flag: "SA",
+    ar: "السعودية",
+    en: "Saudi Arabia",
+  });
+  const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const countries = [
+    { code: "+966", flag: "SA", ar: "السعودية", en: "Saudi Arabia" },
+    { code: "+971", flag: "AE", ar: "الإمارات العربية المتحدة", en: "United Arab Emirates" },
+    { code: "+1", flag: "US", ar: "الولايات المتحدة", en: "United States" },
+    { code: "+44", flag: "GB", ar: "المملكة المتحدة", en: "United Kingdom" },
+  ];
+  const cleanPhone = phone.replace(/\D/g, "");
+  const maskedPhone = cleanPhone
+    ? `${country.code} ••• ••• ${cleanPhone.slice(-3).padStart(3, "•")}`
+    : `${country.code} ••• ••• •••`;
+
+  const submitDetails = () => {
+    if (!cleanPhone || cleanPhone.length < 7) {
+      setError(t("أدخلي رقم جوال صحيحاً للمتابعة.", "Enter a valid mobile number to continue."));
+      return;
+    }
+    if (!login && (!fullName.trim() || !email.includes("@"))) {
+      setError(
+        t(
+          "أكملي الاسم الكامل والبريد الإلكتروني الصحيح.",
+          "Complete your full name and a valid email address.",
+        ),
+      );
+      return;
+    }
+    setError("");
+    setStage("otp");
+  };
+
+  const updateOtp = (index: number, value: string) => {
+    const digit = value.replace(/\D/g, "").slice(-1);
+    setOtp((current) => current.map((item, i) => (i === index ? digit : item)));
+    if (digit && index < 5) otpRefs.current[index + 1]?.focus();
+  };
+
+  const verifyPrototype = () => {
+    if (otp.some((digit) => !digit)) {
+      setError(t("أدخلي رمز التحقق المكوّن من ٦ أرقام.", "Enter the 6-digit verification code."));
+      return;
+    }
+    setError("");
+    setStage("success");
+  };
+
+  if (stage === "success") {
+    return (
+      <div className="auth-page auth-success">
+        <div className="auth-success-icon">
+          <Icon name="check" size={34} />
+        </div>
+        <span className="eyebrow">NASEEJ</span>
+        <h2>
+          {login
+            ? t("مرحباً بعودتكِ", "Welcome back")
+            : t("أصبح حسابكِ جاهزاً", "Your account is ready")}
+        </h2>
+        <p>
+          {login
+            ? t(
+                "هذه معاينة لحالة نجاح تسجيل الدخول في النموذج الأولي.",
+                "This is the successful login state for the UI prototype.",
+              )
+            : t(
+                "هذه معاينة لحالة نجاح إنشاء الحساب في النموذج الأولي.",
+                "This is the successful account creation state for the UI prototype.",
+              )}
+        </p>
+        <div className="prototype-disclosure success-disclosure">
+          <Icon name="help" size={18} />
+          <span>
+            {t(
+              "لم يتم إرسال رسالة نصية أو التحقق من رقم فعلي.",
+              "No SMS was sent and no real phone number was verified.",
+            )}
+          </span>
+        </div>
+        <button className="primary-btn" onClick={onSuccess}>
+          {t("المتابعة إلى الرئيسية", "Continue to home")}
+          <Icon name="arrow" size={18} />
+        </button>
+      </div>
+    );
+  }
+
+  if (stage === "otp") {
+    return (
+      <div className="auth-page otp-page">
+        <div className="auth-mark">N</div>
+        <span className="eyebrow">NASEEJ</span>
+        <h2>{t("تحققي من رقم جوالكِ", "Verify your phone number")}</h2>
+        <p>
+          {t("أدخلي رمز التحقق المكوّن من ٦ أرقام للرقم", "Enter the 6-digit verification code for")}
+          <strong className="masked-phone" dir="ltr">
+            {maskedPhone}
+          </strong>
+        </p>
+
+        <div className="prototype-disclosure">
+          <Icon name="help" size={18} />
+          <span>
+            {t(
+              "معاينة واجهة فقط — لم يتم إرسال رمز SMS فعلي. أدخلي أي ٦ أرقام لاستعراض حالة النجاح.",
+              "UI preview only — no real SMS was sent. Enter any 6 digits to preview the success state.",
+            )}
+          </span>
+        </div>
+
+        <fieldset className="otp-fieldset">
+          <legend>{t("رمز التحقق", "Verification code")}</legend>
+          <div className="otp-inputs" dir="ltr">
+            {otp.map((digit, index) => (
+              <input
+                key={index}
+                ref={(node) => {
+                  otpRefs.current[index] = node;
+                }}
+                value={digit}
+                onChange={(event) => updateOtp(index, event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Backspace" && !digit && index > 0) {
+                    otpRefs.current[index - 1]?.focus();
+                  }
+                }}
+                inputMode="numeric"
+                autoComplete={index === 0 ? "one-time-code" : "off"}
+                aria-label={`${t("رقم", "Digit")} ${index + 1}`}
+                maxLength={1}
+              />
+            ))}
+          </div>
+        </fieldset>
+
+        {error && (
+          <p className="field-error" role="alert">
+            {error}
+          </p>
+        )}
+
+        <div className="otp-actions">
+          <span>
+            {t("يمكنكِ إعادة الإرسال بعد", "You can resend in")} <b dir="ltr">00:38</b>
+          </span>
+          <button disabled>{t("إعادة إرسال الرمز", "Resend code")}</button>
+        </div>
+        <button className="primary-btn" onClick={verifyPrototype}>
+          {t("تحقق ومتابعة", "Verify and continue")}
+        </button>
+        <button
+          className="edit-phone"
+          onClick={() => {
+            setStage("form");
+            setOtp(["", "", "", "", "", ""]);
+            setError("");
+          }}
+        >
+          <Icon name="edit" size={16} />
+          {t("تعديل رقم الجوال", "Edit phone number")}
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="auth-page">
       <div className="auth-mark">N</div>
@@ -1408,51 +1582,107 @@ function AuthScreen({ mode, t, go, onSuccess }: any) {
       <h2>{login ? t("مرحباً بعودتكِ", "Welcome back") : t("انضمّي إلى نسيج", "Join NASEEJ")}</h2>
       <p>
         {login
-          ? t("سجّلي الدخول لمتابعة رحلتكِ", "Log in to continue your journey")
-          : t("أنشئي حسابكِ في خطوات بسيطة", "Create your account in a few simple steps")}
+          ? t(
+              "سجّلي الدخول بسهولة باستخدام رقم جوالكِ المسجّل.",
+              "Sign in easily using your registered mobile number.",
+            )
+          : t(
+              "أنشئي حسابكِ باستخدام بياناتكِ ورقم جوالكِ.",
+              "Create your account with your details and mobile number.",
+            )}
       </p>
       {!login && (
         <Field
           label={t("الاسم الكامل", "Full name")}
           placeholder={t("اكتبي اسمكِ", "Your full name")}
+          value={fullName}
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) => setFullName(event.target.value)}
+          autoComplete="name"
         />
       )}
-      <Field
-        label={t("البريد الإلكتروني", "Email address")}
-        placeholder="name@example.com"
-        type="email"
-      />
-      <Field
-        label={t("كلمة المرور", "Password")}
-        placeholder="••••••••"
-        type="password"
-        icon={<Icon name="eye" size={18} />}
-      />
+      <label className="phone-field">
+        <span className="phone-field-labels">
+          <b>{t("مفتاح الدولة", "Country code")}</b>
+          <b>{t("رقم الجوال", "Mobile number")}</b>
+        </span>
+        <div className="phone-control">
+          <button
+            type="button"
+            className="country-trigger"
+            onClick={() => setCountryOpen((open) => !open)}
+            aria-expanded={countryOpen}
+            aria-label={t("اختيار مفتاح الدولة", "Choose country code")}
+          >
+            <span className="country-flag">{country.flag}</span>
+            <b dir="ltr">{country.code}</b>
+            <Icon name="chevron" size={13} />
+          </button>
+          <input
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel-national"
+            value={phone}
+            onChange={(event) => setPhone(event.target.value)}
+            placeholder={t("5X XXX XXXX", "Mobile number")}
+            dir="ltr"
+            aria-label={t("رقم الجوال", "Mobile number")}
+          />
+        </div>
+        {countryOpen && (
+          <div className="country-menu">
+            <div className="country-menu-title">
+              {t("اختاري مفتاح الدولة", "Choose country code")}
+            </div>
+            {countries.map((item) => (
+              <button
+                type="button"
+                key={`${item.flag}-${item.code}`}
+                className={item.flag === country.flag ? "selected" : ""}
+                onClick={() => {
+                  setCountry(item);
+                  setCountryOpen(false);
+                }}
+              >
+                <span className="country-flag">{item.flag}</span>
+                <span>{t(item.ar, item.en)}</span>
+                <b dir="ltr">{item.code}</b>
+                {item.flag === country.flag && <Icon name="check" size={15} />}
+              </button>
+            ))}
+          </div>
+        )}
+        <small className="field-hint">
+          {t(
+            "اختاري مفتاح الدولة ثم أدخلي الرقم دون الصفر الأول.",
+            "Choose a country code, then enter the mobile number.",
+          )}
+        </small>
+      </label>
       {!login && (
         <Field
-          label={t("تأكيد كلمة المرور", "Confirm password")}
-          placeholder="••••••••"
-          type="password"
+          label={t("البريد الإلكتروني", "Email address")}
+          placeholder="name@example.com"
+          type="email"
+          value={email}
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) => setEmail(event.target.value)}
+          autoComplete="email"
         />
       )}
-      {login && (
-        <div className="auth-options">
-          <label>
-            <input type="checkbox" />
-            {t("تذكريني", "Remember me")}
-          </label>
-          <button>{t("نسيت كلمة المرور؟", "Forgot password?")}</button>
-        </div>
+      {error && (
+        <p className="field-error" role="alert">
+          {error}
+        </p>
       )}
-      <button className="primary-btn" onClick={onSuccess}>
-        {login ? t("تسجيل الدخول", "Log in") : t("إنشاء الحساب", "Create account")}
+      <button className="primary-btn auth-submit" onClick={submitDetails}>
+        {login ? t("متابعة", "Continue") : t("إنشاء حساب", "Create account")}
+        <Icon name="arrow" size={18} />
       </button>
       <p className="auth-switch">
         {login
-          ? t("ليس لديكِ حساب؟", "New to NASEEJ?")
+          ? t("ليس لديك حساب؟", "Don’t have an account?")
           : t("لديكِ حساب بالفعل؟", "Already have an account?")}{" "}
         <button onClick={() => go(login ? "register" : "login")}>
-          {login ? t("إنشاء حساب", "Create one") : t("تسجيل الدخول", "Log in")}
+          {login ? t("إنشاء حساب", "Create account") : t("تسجيل الدخول", "Log in")}
         </button>
       </p>
       <p className="terms">
@@ -1465,13 +1695,12 @@ function AuthScreen({ mode, t, go, onSuccess }: any) {
   );
 }
 
-function Field({ label, placeholder, type = "text", icon }: any) {
+function Field({ label, placeholder, type = "text", ...inputProps }: any) {
   return (
     <label className="field">
       <span>{label}</span>
       <div>
-        <input type={type} placeholder={placeholder} />
-        {icon && <button type="button">{icon}</button>}
+        <input type={type} placeholder={placeholder} {...inputProps} />
       </div>
     </label>
   );
@@ -1817,9 +2046,7 @@ function CurrencySheet({ t, isAr, selected, query, setQuery, select, close }: an
         <div className="sheet-head">
           <div>
             <h2>{t("اختاري العملة", "Choose currency")}</h2>
-            <p>
-              {t("تُعرض الأسعار دون خلط بين العملات", "Prices are never mixed across currencies")}
-            </p>
+            <p>{t("تُعرض الأسعار دون خلط بين العملات", "Prices are never mixed across currencies")}</p>
           </div>
           <button onClick={close}>
             <Icon name="close" />
@@ -1879,7 +2106,7 @@ function AuthPrompt({ t, close, go }: any) {
         <h2>{t("خطوة واحدة قبل الدفع", "One step before checkout")}</h2>
         <p>
           {t(
-            "سجّلي الدخول أو أنشئي حساباً لإكمال الطلب. سنحتفظ بالحقيبة والمفضّلات كما هي.",
+            "سجّلي الدخول أو أنشئي حساباً لإكمال الطلب. سنحتفظ بالسلة والمفضّلات كما هي.",
             "Log in or create an account to complete your order. Your bag and wishlist will stay exactly as they are.",
           )}
         </p>
@@ -1910,7 +2137,7 @@ function ConfirmDialog({ t, close, confirm }: any) {
         <h2>{t("تسجيل الخروج؟", "Log out?")}</h2>
         <p>
           {t(
-            "ستعودين إلى تجربة الزائر. ستبقى العناصر المحلية في سلتك و قائمة المفضلة.",
+            "ستعودين إلى تجربة الزائر. ستبقى العناصر المحلية في سلتكِ وقائمة أمنياتكِ.",
             "You’ll return to the guest experience. Local bag and wishlist items will be preserved.",
           )}
         </p>
