@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import type { Address, Notification, Order } from "@/src/types";
+import type { Address, Order } from "@/src/types";
 import type { AddressRepository, NotificationRepository, OrderRepository } from "@/src/repositories/types";
 import { SEED_ADDRESSES, SEED_NOTIFICATIONS, SEED_ORDERS } from "@/src/data/mock";
 

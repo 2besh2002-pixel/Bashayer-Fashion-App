@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ScrollView, View } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 
 import { AppText } from '@/src/components/ui/AppText';
 import { Icon } from '@/src/components/ui/Icon';
@@ -14,7 +14,6 @@ import type { Order, OrderStatus } from '@/src/types';
 import { pick } from '@/src/utils/format';
 
 export default function OrderDetailScreen() {
-  const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t, lang } = useTranslation();
   const price = usePrice();

@@ -1,5 +1,5 @@
-import { Pressable, ScrollView, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { ScrollView, View } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { AppText } from '@/src/components/ui/AppText';
 import { Button } from '@/src/components/ui/Button';
@@ -10,6 +10,7 @@ import { useTranslation } from '@/src/hooks/useTranslation';
 
 export default function ConfirmationScreen() {
   const router = useRouter();
+  const { orderId } = useLocalSearchParams<{ orderId?: string }>();
   const { t } = useTranslation();
 
   return (
@@ -31,8 +32,8 @@ export default function ConfirmationScreen() {
         <View className="rounded-2xl border border-line bg-paper p-4">
           <View className="flex-row items-center justify-between">
             <AppText className="text-[10px] text-muted">{t('illustrativeOrderNumber')}</AppText>
-            <AppText weight={700} className="text-[12px] text-ink">
-              NSJ-0001
+            <AppText weight={700} className="text-[12px] text-ink" style={{ direction: 'ltr' }}>
+              {orderId ?? '—'}
             </AppText>
           </View>
           <View className="mt-2 flex-row items-center justify-between">
@@ -44,7 +45,7 @@ export default function ConfirmationScreen() {
         </View>
 
         <View className="mt-5 gap-2">
-          <Button onPress={() => router.push('/orders')}>
+          <Button onPress={() => router.push(orderId ? `/order/${orderId}` : '/orders')}>
             {t('viewOrder')}
           </Button>
           <Button variant="secondary" onPress={() => router.replace('/(tabs)')}>

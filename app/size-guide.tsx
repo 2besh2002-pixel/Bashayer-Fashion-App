@@ -6,12 +6,7 @@ import { useTranslation } from '@/src/hooks/useTranslation';
 import { useSettingsStore } from '@/src/stores/settingsStore';
 import { getProductById } from '@/src/data/products';
 
-/**
- * Size guide screen.
- * Removed per requirements: "كيف تقيسين؟" (How to measure) and
- * "ساعديني في اختيار مقاسي" (Help me choose my size) sections have been
- * completely removed. Only product measurements and the unit toggle remain.
- */
+/** Size guide screen: readable product measurements with a cm/in unit toggle. */
 export default function SizeGuideScreen() {
   const { t } = useTranslation();
   const unit = useSettingsStore((s) => s.unit);
@@ -100,11 +95,6 @@ export default function SizeGuideScreen() {
         ) : (
           <AppText className="text-[11px] text-muted">{t('noMeasurements')}</AppText>
         )}
-
-        {/* "Estimate your size" note removed per requirements */}
-        <AppText className="mt-3 text-center text-[8px] text-muted">
-          {t('sizeEstimateNote')}
-        </AppText>
       </ScrollView>
     </Screen>
   );

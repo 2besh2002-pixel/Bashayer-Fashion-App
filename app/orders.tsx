@@ -3,14 +3,12 @@ import { Pressable, ScrollView, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { AppText } from '@/src/components/ui/AppText';
-import { Icon } from '@/src/components/ui/Icon';
 import { PageHeader } from '@/src/components/ui/PageHeader';
 import { Screen } from '@/src/components/ui/Screen';
 import { useTranslation } from '@/src/hooks/useTranslation';
 import { usePrice } from '@/src/hooks/usePrice';
 import { repositories } from '@/src/repositories';
 import type { Order, OrderStatus } from '@/src/types';
-import { pick } from '@/src/utils/format';
 
 export default function OrdersScreen() {
   const router = useRouter();

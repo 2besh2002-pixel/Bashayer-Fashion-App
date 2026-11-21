@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
-import { useRouter } from 'expo-router';
 
 import { AppText } from '@/src/components/ui/AppText';
 import { Icon } from '@/src/components/ui/Icon';
@@ -12,7 +11,6 @@ import type { Notification } from '@/src/types';
 import { pick } from '@/src/utils/format';
 
 export default function NotificationsScreen() {
-  const router = useRouter();
   const { t, lang } = useTranslation();
   const [items, setItems] = useState<Notification[]>([]);
 

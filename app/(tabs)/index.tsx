@@ -86,7 +86,7 @@ export default function HomeScreen() {
               men: '/categories/men',
               shoes: '/categories/shoes-bags',
               bags: '/categories/shoes-bags',
-              accessories: '/categories/kids',
+              accessories: '/categories/women',
             };
             const target = routeMap[cat.id] ?? '/(tabs)/categories';
             return (

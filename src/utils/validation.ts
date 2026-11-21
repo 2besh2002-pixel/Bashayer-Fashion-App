@@ -44,3 +44,65 @@ export function validateRegister(values: RegisterValues): FieldErrors<
 export function hasErrors(errors: Record<string, unknown>): boolean {
   return Object.keys(errors).length > 0;
 }
+
+// ---------------------------------------------------------------------------
+// Phone + OTP (local demo authentication)
+// The email/password validators above are kept intact for backward
+// compatibility; the phone flow below is additive.
+// ---------------------------------------------------------------------------
+
+export interface PhoneValues {
+  phone: string;
+}
+
+export interface PhoneRegistrationValues extends PhoneValues {
+  name: string;
+  email: string;
+  countryCode?: string;
+}
+
+/** Strip everything except digits so "+966 50 000 0000" becomes a comparable number. */
+export function phoneDigits(phone: string): string {
+  return (phone ?? "").replace(/\D/g, "");
+}
+
+/** Local-demo rule: at least 7 digits (E.164 allows up to 15). */
+export function isValidPhone(phone: string): boolean {
+  const digits = phoneDigits(phone);
+  return digits.length >= 7 && digits.length <= 15;
+}
+
+/** Build the full local demo number from a dial code and the typed national number. */
+export function toFullPhone(countryCode: string, phone: string): string {
+  const digits = phoneDigits(phone);
+  return digits ? `${countryCode}${digits}` : "";
+}
+
+/** Accepts six single-digit entries or a joined six-digit code. */
+export function isValidOtp(code: string | string[]): boolean {
+  const joined = Array.isArray(code) ? code.join("") : code;
+  return /^\d{6}$/.test(joined);
+}
+
+export function validatePhone(values: PhoneValues): FieldErrors<"phone"> {
+  const errors: FieldErrors<"phone"> = {};
+  if (!isValidPhone(values.phone)) errors.phone = "errPhoneInvalid";
+  return errors;
+}
+
+export function validatePhoneRegistration(
+  values: PhoneRegistrationValues,
+): FieldErrors<"name" | "email" | "phone"> {
+  const errors: FieldErrors<"name" | "email" | "phone"> = {};
+  if (!values.name.trim()) errors.name = "errNameRequired";
+  if (!values.email.trim()) errors.email = "errEmailRequired";
+  else if (!isValidEmail(values.email)) errors.email = "errEmailInvalid";
+  if (!isValidPhone(values.phone)) errors.phone = "errPhoneInvalid";
+  return errors;
+}
+
+export function validateOtp(code: string | string[]): FieldErrors<"otp"> {
+  const errors: FieldErrors<"otp"> = {};
+  if (!isValidOtp(code)) errors.otp = "errOtpInvalid";
+  return errors;
+}

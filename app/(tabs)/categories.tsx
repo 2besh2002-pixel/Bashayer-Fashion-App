@@ -66,7 +66,7 @@ export default function CategoriesScreen() {
                 {CATEGORY_GROUPS.find((g) => g.id === cat.id)?.items.map((item) => (
                   <Pressable
                     key={pick(item, lang)}
-                    onPress={() => router.push(`/categories/${cat.id}`)}
+                    onPress={() => router.push(`/categories/${cat.id}?subcategory=${encodeURIComponent(pick(item, lang))}`)}
                     className="flex-row items-center justify-between border-b border-line py-3 active:opacity-70"
                   >
                     <AppText className="text-[11px] text-ink">{pick(item, lang)}</AppText>
@@ -101,7 +101,7 @@ export default function CategoriesScreen() {
             {CATEGORY_GROUPS.find((g) => g.id === 'shoes-bags')?.items.map((item) => (
               <Pressable
                 key={pick(item, lang)}
-                onPress={() => router.push('/categories/shoes-bags')}
+                onPress={() => router.push(`/categories/shoes-bags?subcategory=${encodeURIComponent(pick(item, lang))}`)}
                 className="flex-row items-center justify-between border-b border-line py-3 active:opacity-70"
               >
                 <AppText className="text-[11px] text-ink">{pick(item, lang)}</AppText>

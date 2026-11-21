@@ -14,6 +14,15 @@ export type RepoResult<T> =
   | { ok: true; data: T }
   | { ok: false; error: TranslationKey };
 
+export interface PhoneRegistrationInput {
+  name: string;
+  email: string;
+  /** Full number including dial code, e.g. "+966500000000". */
+  phone: string;
+  /** Dial code only, e.g. "+966". */
+  countryCode: string;
+}
+
 export interface AuthRepository {
   /** Returns the authenticated user + a session token on success. */
   login(email: string, password: string): Promise<RepoResult<{ user: User; token: string }>>;
@@ -25,6 +34,16 @@ export interface AuthRepository {
   logout(token: string | null): Promise<void>;
   /** Restore a persisted demo session, if any. */
   restoreSession(): Promise<{ user: User; token: string } | null>;
+
+  // ---- Phone + OTP local demonstration methods (additive) ----
+  /** Look up an existing local demo account by phone. Does not authenticate. */
+  loginWithPhone(phone: string): Promise<RepoResult<{ user: User }>>;
+  /** Create a local demo account (public profile only) before OTP. */
+  registerWithPhone(input: PhoneRegistrationInput): Promise<RepoResult<{ user: User }>>;
+  /** Simulate sending an OTP. No SMS is sent in this prototype. */
+  requestOtp(phone: string): Promise<RepoResult<{ phone: string }>>;
+  /** Accept any 6 digits in this UI prototype and issue a demo session. */
+  verifyOtp(phone: string, code: string): Promise<RepoResult<{ user: User; token: string }>>;
 }
 
 export interface CatalogRepository {

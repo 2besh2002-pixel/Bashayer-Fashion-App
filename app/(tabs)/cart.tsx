@@ -72,7 +72,11 @@ export default function CartScreen() {
           </View>
         </View>
 
-        {lines.map(({ item, product }) => (
+        {lines.map(({ item, product, lineTotal }) => {
+          const sizeLabel = product.sizes.find((s) => s.id === item.sizeId)?.label ?? t('noOptions');
+          const colorLabel = product.colors.find((c) => c.id === item.colorId);
+          const colorName = colorLabel ? pick(colorLabel.name, lang) : t('noOptions');
+          return (
           <View key={item.id} className="mb-3 flex-row gap-3 rounded-2xl border border-line bg-paper p-3">
             <Image source={{ uri: product.images[0] }} className="h-[80px] w-[68px] rounded-xl" resizeMode="cover" />
             <View className="flex-1">
@@ -80,10 +84,10 @@ export default function CartScreen() {
                 {pick(product.name, lang)}
               </AppText>
               <AppText className="mt-0.5 text-[9px] text-muted">
-                {t('sizeLabel')}: {item.sizeId ?? '-'} · {t('colorLabel')}: {item.colorId ?? '-'}
+                {t('sizeLabel')}: {sizeLabel} · {t('colorLabel')}: {colorName}
               </AppText>
               <AppText weight={600} className="mt-1 text-[11px] text-wine">
-                {price(product.price)}
+                {price(product.price)} × {item.quantity} = {price(lineTotal)}
               </AppText>
               <View className="mt-2 flex-row items-center justify-between">
                 <QuantityStepper
@@ -103,7 +107,8 @@ export default function CartScreen() {
               </View>
             </View>
           </View>
-        ))}
+          );
+        })}
 
         <View className="mt-2 rounded-2xl border border-line bg-paper p-4">
           <AppText weight={700} className="mb-2 text-[12px] text-ink">

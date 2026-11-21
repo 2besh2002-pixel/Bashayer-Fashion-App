@@ -73,7 +73,7 @@ export const translations = {
   // ---------- Screen titles ----------
   titleHome: { ar: "الرئيسية", en: "Home" },
   titleCategories: { ar: "الأقسام", en: "Categories" },
-  titleWishlist: { ar: "قائمة المفضلة", en: "Wishlist" },
+  titleWishlist: { ar: "المفضلة", en: "Wishlist" },
   titleCart: { ar: "السلة", en: "Cart" },
   titleProfile: { ar: "حسابي", en: "My Profile" },
   titleSearch: { ar: "البحث", en: "Search" },
@@ -105,7 +105,7 @@ export const translations = {
   inStock: { ar: "متوفر", en: "In stock" },
   selectSizeFirst: { ar: "اختاري المقاس قبل الإضافة", en: "Select a size before adding" },
   soldOut: { ar: "غير متوفر", en: "Sold out" },
-  addToCart: { ar: "أضيفي إلى الحقيبة", en: "Add to bag" },
+  addToCart: { ar: "أضيفي إلى السلة", en: "Add to cart" },
   savePercent: { ar: "وفّري", en: "Save" },
   detailsMaterial: { ar: "التفاصيل والخامة", en: "Details & material" },
   deliveryReturns: { ar: "التوصيل والإرجاع", en: "Delivery & returns" },
@@ -147,7 +147,7 @@ export const translations = {
   apply: { ar: "تطبيق", en: "Apply" },
   couponApplied: { ar: "تم تطبيق القسيمة", en: "Coupon applied" },
   couponInvalid: { ar: "رمز القسيمة غير صالح", en: "Invalid coupon code" },
-  bagSummary: { ar: "ملخص الحقيبة", en: "Bag summary" },
+  bagSummary: { ar: "ملخص السلة", en: "Cart summary" },
   subtotal: { ar: "المجموع الفرعي", en: "Subtotal" },
   discounts: { ar: "الخصومات", en: "Discounts" },
   delivery: { ar: "رسوم التوصيل", en: "Delivery" },
@@ -156,8 +156,8 @@ export const translations = {
   continueToCheckout: { ar: "متابعة الدفع", en: "Continue to checkout" },
   increaseQty: { ar: "زيادة الكمية", en: "Increase quantity" },
   decreaseQty: { ar: "تقليل الكمية", en: "Decrease quantity" },
-  itemAddedToCart: { ar: "تمت الإضافة إلى الحقيبة", en: "Added to your bag" },
-  itemRemovedFromCart: { ar: "تمت الإزالة من الحقيبة", en: "Removed from your bag" },
+  itemAddedToCart: { ar: "تمت الإضافة إلى السلة", en: "Added to your cart" },
+  itemRemovedFromCart: { ar: "تمت الإزالة من السلة", en: "Removed from your cart" },
   wishlistUpdated: { ar: "تم تحديث قائمة المفضلة", en: "Wishlist updated" },
 
   // ---------- Profile ----------
@@ -180,7 +180,7 @@ export const translations = {
   savedFavoritesHint: { ar: "من أي جهاز وفي أي وقت", en: "On every device, anytime" },
   welcomeBack: { ar: "مرحباً بعودتكِ", en: "Welcome back" },
   myOrders: { ar: "طلباتي", en: "My orders" },
-  myWishlist: { ar: "قائمة  المفضلة", en: "My wishlist" },
+  myWishlist: { ar: "المفضلة", en: "My wishlist" },
   myAddresses: { ar: "عناويني", en: "My addresses" },
   settings: { ar: "الإعدادات", en: "Settings" },
   supportFaq: { ar: "المساعدة والأسئلة الشائعة", en: "Support & FAQ" },
@@ -372,7 +372,7 @@ export const translations = {
   qty: { ar: "الكمية", en: "Qty" },
   guestCheckoutTitle: { ar: "خطوة واحدة قبل الدفع", en: "One step before checkout" },
   guestCheckoutText: {
-    ar: "سجّلي الدخول أو أنشئي حساباً لإكمال الطلب. سنحتفظ بالحقيبة والمفضّلات كما هي.",
+    ar: "سجّلي الدخول أو أنشئي حساباً لإكمال الطلب. سنحتفظ بالسلة والمفضلة كما هي.",
     en: "Log in or create an account to complete your order. Your bag and wishlist will stay exactly as they are.",
   },
   continueShopping: { ar: "متابعة التسوق", en: "Continue shopping" },
@@ -493,6 +493,101 @@ export const translations = {
   orderStatus: { ar: "حالة الطلب", en: "Order status" },
   awaitingConfirmation: { ar: "بانتظار التأكيد", en: "Awaiting confirmation" },
   viewOrder: { ar: "عرض تفاصيل الطلب", en: "View order details" },
+
+  // ---------- Phone + OTP authentication (local demonstration) ----------
+  authLoginSubtitlePhone: {
+    ar: "سجّلي الدخول بسهولة باستخدام رقم جوالكِ المسجّل.",
+    en: "Sign in easily using your registered mobile number.",
+  },
+  authRegisterSubtitlePhone: {
+    ar: "أنشئي حسابكِ باستخدام بياناتكِ ورقم جوالكِ.",
+    en: "Create your account with your details and mobile number.",
+  },
+  countryCode: { ar: "مفتاح الدولة", en: "Country code" },
+  mobileNumber: { ar: "رقم الجوال", en: "Mobile number" },
+  chooseCountryCode: { ar: "اختاري مفتاح الدولة", en: "Choose country code" },
+  countrySA: { ar: "السعودية", en: "Saudi Arabia" },
+  countryAE: { ar: "الإمارات العربية المتحدة", en: "United Arab Emirates" },
+  countryUS: { ar: "الولايات المتحدة", en: "United States" },
+  countryGB: { ar: "المملكة المتحدة", en: "United Kingdom" },
+  phonePlaceholder: { ar: "5X XXX XXXX", en: "Mobile number" },
+  phoneFieldHint: {
+    ar: "اختاري مفتاح الدولة ثم أدخلي الرقم دون الصفر الأول.",
+    en: "Choose a country code, then enter the mobile number.",
+  },
+  errPhoneInvalid: {
+    ar: "أدخلي رقم جوال صحيحاً للمتابعة.",
+    en: "Enter a valid mobile number to continue.",
+  },
+  errAccountDetailsIncomplete: {
+    ar: "أكملي الاسم الكامل والبريد الإلكتروني الصحيح.",
+    en: "Complete your full name and a valid email address.",
+  },
+  errAccountExists: {
+    ar: "يوجد حساب بهذا الرقم أو البريد بالفعل. سجّلي الدخول أو استخدمي بيانات أخرى.",
+    en: "An account with this number or email already exists. Log in or use other details.",
+  },
+  errAccountNotFound: {
+    ar: "لا يوجد حساب بهذا الرقم. أنشئي حساباً جديداً للمتابعة.",
+    en: "No account was found for this number. Create an account to continue.",
+  },
+  verifyPhoneTitle: { ar: "تحققي من رقم جوالكِ", en: "Verify your phone number" },
+  verifyPhoneText: {
+    ar: "أدخلي رمز التحقق المكوّن من ٦ أرقام للرقم",
+    en: "Enter the 6-digit verification code for",
+  },
+  verificationCode: { ar: "رمز التحقق", en: "Verification code" },
+  errOtpInvalid: {
+    ar: "أدخلي رمز التحقق المكوّن من ٦ أرقام.",
+    en: "Enter the 6-digit verification code.",
+  },
+  otpDemoDisclosure: {
+    ar: "معاينة واجهة فقط — لم يتم إرسال رمز SMS فعلي. أدخلي أي ٦ أرقام لاستعراض حالة النجاح.",
+    en: "UI preview only — no real SMS was sent. Enter any 6 digits to preview the success state.",
+  },
+  resendIn: { ar: "يمكنكِ إعادة الإرسال بعد", en: "You can resend in" },
+  resendCode: { ar: "إعادة إرسال الرمز", en: "Resend code" },
+  verifyContinue: { ar: "تحقق ومتابعة", en: "Verify and continue" },
+  editPhone: { ar: "تعديل رقم الجوال", en: "Edit phone number" },
+  accountReadyTitle: { ar: "أصبح حسابكِ جاهزاً", en: "Your account is ready" },
+  loginSuccessText: {
+    ar: "هذه معاينة لحالة نجاح تسجيل الدخول في النموذج الأولي.",
+    en: "This is the successful login state for the UI prototype.",
+  },
+  registerSuccessText: {
+    ar: "هذه معاينة لحالة نجاح إنشاء الحساب في النموذج الأولي.",
+    en: "This is the successful account creation state for the UI prototype.",
+  },
+  smsDemoDisclosure: {
+    ar: "لم يتم إرسال رسالة نصية أو التحقق من رقم فعلي.",
+    en: "No SMS was sent and no real phone number was verified.",
+  },
+  continueToHome: { ar: "المتابعة إلى الرئيسية", en: "Continue to home" },
+  authFormErrorTitle: { ar: "تعذّر المتابعة", en: "Could not continue" },
+
+  // ---------- Product detail sections ----------
+  productDetailsTab: { ar: "تفاصيل المنتج", en: "Product details" },
+  serviceTab: { ar: "الخدمة", en: "Service" },
+  deliveryTab: { ar: "التوصيل", en: "Delivery" },
+  returnsTab: { ar: "الاسترجاع", en: "Returns" },
+  quantity: { ar: "الكمية", en: "Quantity" },
+  serviceDemoText: {
+    ar: "تظهر معلومات الخدمة المتاحة للمنتج عند توفر بيانات المتجر الفعلية.",
+    en: "Product service information appears when real store data is available.",
+  },
+  deliveryDemoText: {
+    ar: "تظهر خيارات التوصيل ورسومه الفعلية عند توفر بيانات المتجر. يرجى مراجعة الطلب قبل تأكيده.",
+    en: "Delivery options and fees appear when store data is available. Please review your order before confirming.",
+  },
+  returnsDemoText: {
+    ar: "تظهر سياسة الاسترجاع المعتمدة للمتجر عند توفر بيانات المتجر الفعلية.",
+    en: "The store's return policy appears when real store data is available.",
+  },
+
+  // ---------- Category browsing ----------
+  subcategories: { ar: "الأقسام الفرعية", en: "Subcategories" },
+  allCategoryItems: { ar: "كل القطع", en: "All items" },
+  filterBySubcategory: { ar: "تصفية حسب القسم الفرعي", en: "Filter by subcategory" },
 } as const;
 
 export type TranslationKey = keyof typeof translations;

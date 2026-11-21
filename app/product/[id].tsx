@@ -15,6 +15,7 @@ import { useWishlistStore } from '@/src/stores/wishlistStore';
 import { getProductById, getRelatedProducts } from '@/src/data/products';
 import { pick, discountPercent } from '@/src/utils/format';
 import { ProductGrid } from '@/src/components/commerce/ProductCard';
+import { QuantityStepper } from '@/src/components/commerce/QuantityStepper';
 
 export default function ProductScreen() {
   const router = useRouter();
@@ -29,8 +30,11 @@ export default function ProductScreen() {
 
   const [selectedColor, setSelectedColor] = useState(product?.colors[0]?.id ?? null);
   const [selectedSize, setSelectedSize] = useState(product?.sizes.find((s) => s.available)?.id ?? null);
+  const [quantity, setQuantity] = useState(1);
   const [openDetails, setOpenDetails] = useState(false);
+  const [openService, setOpenService] = useState(false);
   const [openDelivery, setOpenDelivery] = useState(false);
+  const [openReturns, setOpenReturns] = useState(false);
 
   if (!product) {
     return (
@@ -51,7 +55,7 @@ export default function ProductScreen() {
       showToast(t('selectSizeFirst'));
       return;
     }
-    addItem(product, { colorId: selectedColor, sizeId: selectedSize });
+    addItem(product, { colorId: selectedColor, sizeId: selectedSize, quantity });
     showToast(t('itemAddedToCart'));
   };
 
@@ -69,6 +73,15 @@ export default function ProductScreen() {
             style={{ end: 16 }}
           >
             <Icon name="heart" size={20} color={isFavorite ? '#6b2637' : '#211e1c'} filled={isFavorite} />
+          </Pressable>
+          <Pressable
+            onPress={() => router.push('/(tabs)/cart')}
+            accessibilityRole="button"
+            accessibilityLabel={t('navCart')}
+            className="absolute bottom-4 h-[40px] w-[40px] items-center justify-center rounded-full bg-white/90 active:opacity-70"
+            style={{ start: 16 }}
+          >
+            <Icon name="bag" size={20} color="#211e1c" />
           </Pressable>
           <View
             className="absolute bottom-4 rounded-full bg-black/50 px-3 py-1"
@@ -165,7 +178,20 @@ export default function ProductScreen() {
           </AppText>
         </View>
 
-        <View className="mt-5 px-[18px]">
+        <View className="mt-5 flex-row items-center justify-between px-[18px]">
+          <AppText weight={700} className="text-[12px] text-ink">
+            {t('quantity')}
+          </AppText>
+          <QuantityStepper
+            value={quantity}
+            onIncrease={() => setQuantity((q) => Math.min(10, q + 1))}
+            onDecrease={() => setQuantity((q) => Math.max(1, q - 1))}
+            min={1}
+            max={10}
+          />
+        </View>
+
+        <View className="mt-4 px-[18px]">
           <Button onPress={handleAdd} iconLeft="bag" iconRight="arrow">
             {t('addToCart')} · {price(product.price)}
           </Button>
@@ -178,7 +204,7 @@ export default function ProductScreen() {
           >
             <View className="flex-row items-center gap-2">
               <Icon name="eye" size={16} color="#211e1c" />
-              <AppText className="text-[11px] text-ink">{t('detailsMaterial')}</AppText>
+              <AppText className="text-[11px] text-ink">{t('productDetailsTab')}</AppText>
             </View>
             <Icon name={openDetails ? 'close' : 'plus'} size={16} color="#78706a" />
           </Pressable>
@@ -194,23 +220,52 @@ export default function ProductScreen() {
               ) : null}
             </View>
           ) : null}
+
+          <Pressable
+            onPress={() => setOpenService((v) => !v)}
+            className="flex-row items-center justify-between border-b border-line py-3"
+          >
+            <View className="flex-row items-center gap-2">
+              <Icon name="help" size={16} color="#211e1c" />
+              <AppText className="text-[11px] text-ink">{t('serviceTab')}</AppText>
+            </View>
+            <Icon name={openService ? 'close' : 'plus'} size={16} color="#78706a" />
+          </Pressable>
+          {openService ? (
+            <View className="border-b border-line py-3">
+              <AppText className="text-[10px] leading-[1.7] text-muted">{t('serviceDemoText')}</AppText>
+            </View>
+          ) : null}
+
           <Pressable
             onPress={() => setOpenDelivery((v) => !v)}
             className="flex-row items-center justify-between border-b border-line py-3"
           >
             <View className="flex-row items-center gap-2">
               <Icon name="truck" size={16} color="#211e1c" />
-              <AppText className="text-[11px] text-ink">{t('deliveryReturns')}</AppText>
+              <AppText className="text-[11px] text-ink">{t('deliveryTab')}</AppText>
             </View>
             <Icon name={openDelivery ? 'close' : 'plus'} size={16} color="#78706a" />
           </Pressable>
           {openDelivery ? (
             <View className="border-b border-line py-3">
-              <AppText className="text-[10px] leading-[1.7] text-muted">
-                {lang === 'ar'
-                  ? 'خيارات التوصيل والإرجاع معروضة بصورة توضيحية. يرجى مراجعة تفاصيل الطلب قبل تأكيده.'
-                  : 'Delivery and return options are shown for demonstration. Please review the order details before confirming.'}
-              </AppText>
+              <AppText className="text-[10px] leading-[1.7] text-muted">{t('deliveryDemoText')}</AppText>
+            </View>
+          ) : null}
+
+          <Pressable
+            onPress={() => setOpenReturns((v) => !v)}
+            className="flex-row items-center justify-between border-b border-line py-3"
+          >
+            <View className="flex-row items-center gap-2">
+              <Icon name="box" size={16} color="#211e1c" />
+              <AppText className="text-[11px] text-ink">{t('returnsTab')}</AppText>
+            </View>
+            <Icon name={openReturns ? 'close' : 'plus'} size={16} color="#78706a" />
+          </Pressable>
+          {openReturns ? (
+            <View className="border-b border-line py-3">
+              <AppText className="text-[10px] leading-[1.7] text-muted">{t('returnsDemoText')}</AppText>
             </View>
           ) : null}
         </View>

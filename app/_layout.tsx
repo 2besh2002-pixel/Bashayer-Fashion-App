@@ -18,7 +18,7 @@ import {
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useSyncExternalStore } from 'react';
-import { Platform, View } from 'react-native';
+import { I18nManager, Platform, View } from 'react-native';
 import '../global.css';
 import 'react-native-reanimated';
 
@@ -35,6 +35,17 @@ export const unstable_settings = {
 };
 
 SplashScreen.preventAutoHideAsync();
+
+// Enable native RTL support (Android) and let our explicit per-view `direction`
+// styles drive the active language. We intentionally avoid forceRTL + reload:
+// the app switches language through persisted state without restarting.
+if (Platform.OS !== 'web') {
+  try {
+    I18nManager.allowRTL(true);
+  } catch {
+    // Older runtimes may not expose allowRTL — explicit direction styles still apply.
+  }
+}
 
 export default function RootLayout() {
   const settingsReady = useSyncExternalStore(

@@ -269,7 +269,82 @@ export const PRODUCTS: Product[] = [
     colors: [IVORY, BURGUNDY, CHARCOAL],
     sizes: CLOTHING_SIZES(["XXL"]),
   },
+  {
+    id: 11,
+    slug: "kids-cotton-set",
+    name: { ar: "طقم قطني للأطفال", en: "Kids Cotton Set" },
+    price: 149,
+    rating: 4.6,
+    reviewCount: 38,
+    images: [img("photo-1519238263530-99bdd11df2ea")],
+    categoryId: "kids",
+    badge: { ar: "جديد", en: "New" },
+    description: {
+      ar: "طقم قطني ناعم للأطفال بقصة مريحة مناسبة للاستخدام اليومي.",
+      en: "A soft cotton set for kids with a comfortable everyday fit.",
+    },
+    colors: [IVORY, BLACK],
+    sizes: CLOTHING_SIZES(["XS", "XXL"]),
+  },
+  {
+    id: 12,
+    slug: "kids-sneakers",
+    name: { ar: "حذاء رياضي للأطفال", en: "Kids Sneakers" },
+    price: 199,
+    rating: 4.5,
+    reviewCount: 52,
+    images: [img("photo-1544549147-1dc8901b6feb")],
+    categoryId: "kids",
+    description: {
+      ar: "حذاء رياضي خفيف للأطفال بنعل مريح وخطوط عملية.",
+      en: "Lightweight sneakers for kids with a comfy sole and practical lines.",
+    },
+    colors: [BLACK, TAN],
+    sizes: SHOE_SIZES([41]),
+  },
 ];
+
+/**
+ * Maps each subcategory label used in CATEGORY_GROUPS (both Arabic and English
+ * variants) to the ids of the products that belong to it. Kept here because the
+ * Product type intentionally has no subcategory field.
+ */
+export const SUBCATEGORY_PRODUCT_IDS: Record<string, number[]> = {
+  // Women
+  "فساتين": [1, 5],
+  Dresses: [1, 5],
+  "توبات وقمصان": [10],
+  "Tops & shirts": [10],
+  "عبايات ومعاطف": [3],
+  "Abayas & coats": [3],
+  "بناطيل وتنانير": [],
+  "Trousers & skirts": [],
+  // Men
+  "قمصان": [8],
+  Shirts: [8],
+  "تيشيرتات": [],
+  "T-shirts": [],
+  "بناطيل": [],
+  Trousers: [],
+  "جاكيتات": [],
+  Jackets: [],
+  // Kids
+  "أزياء أطفال": [11],
+  "Kids’ fashion": [11],
+  "أحذية أطفال": [12],
+  "Kids’ shoes": [12],
+  "إكسسوارات أطفال": [],
+  "Kids’ accessories": [],
+  // Shoes & bags
+  "أحذية نسائية": [4],
+  "Women’s shoes": [4],
+  "أحذية رجالية": [9],
+  "Men’s shoes": [9],
+  "حقائب يد": [2],
+  Handbags: [2],
+  "حقائب ظهر": [7],
+  Backpacks: [7],
+};
 
 export function getProductById(id: number): Product | undefined {
   return PRODUCTS.find((p) => p.id === id);

@@ -92,6 +92,10 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  /** Optional full phone number (dial code + digits) for local demo accounts. */
+  phone?: string;
+  /** Optional dial code, e.g. "+966". */
+  countryCode?: string;
 }
 
 export interface Address {

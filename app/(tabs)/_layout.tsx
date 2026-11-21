@@ -15,7 +15,6 @@ export default function TabLayout() {
       <Tabs.Screen name="wishlist" />
       <Tabs.Screen name="cart" />
       <Tabs.Screen name="account" />
-      <Tabs.Screen name="two" />
     </Tabs>
   );
 }

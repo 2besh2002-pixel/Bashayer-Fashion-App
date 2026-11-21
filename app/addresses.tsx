@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
-import { useRouter } from 'expo-router';
 
 import { AppText } from '@/src/components/ui/AppText';
 import { AppTextInput } from '@/src/components/ui/AppTextInput';
@@ -14,7 +13,6 @@ import type { Address } from '@/src/types';
 import { pick } from '@/src/utils/format';
 
 export default function AddressesScreen() {
-  const router = useRouter();
   const { t, lang } = useTranslation();
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [form, setForm] = useState({ recipient: '', city: '', line: '' });

@@ -68,7 +68,9 @@ export default function WishlistScreen() {
                 <View className="flex-1">
                   <Button
                     onPress={() => {
-                      addItem(p, { colorId: p.colors[0]?.id ?? null, sizeId: p.sizes[0]?.id ?? null });
+                      const color = p.colors.find((c: any) => c.available) ?? p.colors[0];
+                      const size = p.sizes.find((s: any) => s.available) ?? p.sizes[0];
+                      addItem(p, { colorId: color?.id ?? null, sizeId: size?.id ?? null });
                       showToast(t('itemAddedToCart'));
                     }}
                   >

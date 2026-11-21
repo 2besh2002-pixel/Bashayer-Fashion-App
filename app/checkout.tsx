@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 
 import { AppText } from '@/src/components/ui/AppText';
 import { AppTextInput } from '@/src/components/ui/AppTextInput';
+import { AuthPromptDialog } from '@/src/components/ui/AuthPromptDialog';
 import { Button } from '@/src/components/ui/Button';
 import { Icon } from '@/src/components/ui/Icon';
 import { PageHeader } from '@/src/components/ui/PageHeader';
@@ -15,6 +16,7 @@ import { useCartStore } from '@/src/stores/cartStore';
 import { usePrice } from '@/src/hooks/usePrice';
 import { useUiStore } from '@/src/stores/uiStore';
 import { useSettingsStore } from '@/src/stores/settingsStore';
+import { useAuthStore } from '@/src/stores/authStore';
 import { repositories } from '@/src/repositories';
 import { demoOrderNumber, pick } from '@/src/utils/format';
 import type { Address } from '@/src/types';
@@ -27,7 +29,9 @@ export default function CheckoutScreen() {
   const clearCart = useCartStore((s) => s.clear);
   const showToast = useUiStore((s) => s.showToast);
   const currency = useSettingsStore((s) => s.currency);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
+  const [authPrompt, setAuthPrompt] = useState(!isAuthenticated);
   const [step, setStep] = useState(0);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<string>('');
@@ -67,6 +71,10 @@ export default function CheckoutScreen() {
   };
 
   const placeOrder = async () => {
+    if (!isAuthenticated) {
+      setAuthPrompt(true);
+      return;
+    }
     setSubmitting(true);
     const order = {
       id: demoOrderNumber(),
@@ -91,7 +99,7 @@ export default function CheckoutScreen() {
     await repositories.orders.create(order as any);
     clearCart();
     setSubmitting(false);
-    router.replace('/confirmation');
+    router.replace(`/confirmation?orderId=${encodeURIComponent(order.id)}`);
   };
 
   const stepTitles = [t('checkoutAddress'), t('checkoutDelivery'), t('checkoutPayment'), t('checkoutReview')];
@@ -344,6 +352,23 @@ export default function CheckoutScreen() {
           </View>
         </View>
       </ScrollView>
+
+      <AuthPromptDialog
+        visible={authPrompt}
+        onClose={() => {
+          setAuthPrompt(false);
+          if (router.canGoBack()) router.back();
+          else router.replace('/(tabs)/cart');
+        }}
+        onLogin={() => {
+          setAuthPrompt(false);
+          router.push('/login');
+        }}
+        onRegister={() => {
+          setAuthPrompt(false);
+          router.push('/register');
+        }}
+      />
     </Screen>
   );
 }

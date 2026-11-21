@@ -3,7 +3,7 @@ import { Pressable, View } from "react-native";
 import { AppText } from "@/src/components/ui/AppText";
 import { Button } from "@/src/components/ui/Button";
 import { Dialog } from "@/src/components/ui/Dialog";
-import { Icon, type IconName } from "@/src/components/ui/Icon";
+import { Icon } from "@/src/components/ui/Icon";
 import { useTranslation } from "@/src/hooks/useTranslation";
 
 interface AuthPromptDialogProps {

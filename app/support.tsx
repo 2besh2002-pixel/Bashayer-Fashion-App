@@ -1,5 +1,4 @@
-import { Pressable, ScrollView, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { ScrollView, View } from 'react-native';
 
 import { AppText } from '@/src/components/ui/AppText';
 import { Icon } from '@/src/components/ui/Icon';
@@ -8,7 +7,6 @@ import { Screen } from '@/src/components/ui/Screen';
 import { useTranslation } from '@/src/hooks/useTranslation';
 
 export default function SupportScreen() {
-  const router = useRouter();
   const { t } = useTranslation();
 
   const faqs = [

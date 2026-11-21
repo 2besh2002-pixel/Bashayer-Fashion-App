@@ -23,14 +23,14 @@ export default function SettingsScreen() {
   ];
 
   const accountRows = [
-    { icon: 'user' as const, label: t('personalInfo'), onPress: () => {} },
+    { icon: 'user' as const, label: t('personalInfo'), onPress: () => router.push('/(tabs)/account') },
     { icon: 'pin' as const, label: t('addressManagement'), onPress: () => router.push('/addresses') },
-    { icon: 'bell' as const, label: t('notificationPrefs'), onPress: () => {} },
+    { icon: 'bell' as const, label: t('notificationPrefs'), onPress: () => router.push('/notifications') },
   ];
 
   const supportRows = [
-    { icon: 'help' as const, label: t('privacyTerms'), onPress: () => {} },
-    { icon: 'box' as const, label: t('returnPolicy'), onPress: () => {} },
+    { icon: 'help' as const, label: t('privacyTerms'), onPress: () => router.push('/support') },
+    { icon: 'box' as const, label: t('returnPolicy'), onPress: () => router.push('/support') },
     { icon: 'edit' as const, label: t('contactSupport'), onPress: () => router.push('/support') },
   ];
 
