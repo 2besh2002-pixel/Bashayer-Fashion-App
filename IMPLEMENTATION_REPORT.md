@@ -3,8 +3,8 @@
 ## A. Project protection
 
 - Worked directly on the existing Expo app at the workspace root. No new project was created, no screens were replaced, and the nested `Bashayer_Shopping_App_UI_v1/` design-reference folder was **not modified** (it already had uncommitted changes when work began; those were preserved and committed as-is).
-- Private backup of `src/`, `app/`, `assets/`, `constants/`, `components/` and config files was created in the temp directory before edits.
-- Git checkpoints created: `ba5f68b` (pre-implementation state) and `c7a9956` (implementation checkpoint).
+- Private backup of `src/`, `app/`, `assets/`, `constants/`, `components/`, `store-configs/`, `tests/` and config files was created at `C:\Users\بشاير علي\AppData\Local\Temp\opencode\Bashayer_Shopping_App_UI_v1_Backup` (verified listing) — plus the Git checkpoints below, which are the durable backup.
+- Git checkpoints created on branch `bashayer-complete-improvements`: `ba5f68b` (pre-implementation state), `c7a9956` (implementation checkpoint), `bc9f39b` (final state after the auth test fix).
 - All existing mock products, categories, images, prices, variations, routes, stores and working features were preserved. Two kids products were **appended** (ids 11–12); nothing was deleted.
 - No breaking changes observed: TypeScript, lint, Jest and `expo-doctor` all pass.
 
