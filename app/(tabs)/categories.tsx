@@ -28,15 +28,16 @@ export default function CategoriesScreen() {
       </View>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
         <View className="mt-2 flex-row gap-2 px-[18px]">
-          {[t('all')].concat(mainCategories.map((c) => c.label)).map((label, i) => (
-            <View
-              key={label}
-              className={`rounded-full px-3 py-1.5 ${i === 0 ? 'bg-ink' : 'bg-chipBg'}`}
+          {[{ id: 'all', label: t('all') }, ...mainCategories].map((seg) => (
+            <Pressable
+              key={seg.id}
+              onPress={() => seg.id === 'all' ? router.push('/(tabs)/categories') : router.push(`/categories/${seg.id}`)}
+              className={`rounded-full px-3 py-1.5 ${seg.id === 'all' ? 'bg-ink' : 'bg-chipBg'}`}
             >
-              <AppText weight={600} className={`text-[10px] ${i === 0 ? 'text-white' : 'text-ink'}`}>
-                {label}
+              <AppText weight={600} className={`text-[10px] ${seg.id === 'all' ? 'text-white' : 'text-ink'}`}>
+                {seg.label}
               </AppText>
-            </View>
+            </Pressable>
           ))}
         </View>
 
