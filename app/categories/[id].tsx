@@ -33,8 +33,11 @@ export default function CategoryListingScreen() {
   const titleKey = titleKeyMap[id] ?? id;
   const title = t(titleKey as any);
 
-  // Show products for this category (women includes dresses group).
-  const displayedProducts = PRODUCTS.filter((p) => p.categoryId === id);
+  // Show products for this category.
+  // "shoes-bags" maps to shoes + bags products.
+  const displayedProducts = id === 'shoes-bags'
+    ? PRODUCTS.filter((p) => ['shoes', 'bags'].includes(p.categoryId))
+    : PRODUCTS.filter((p) => p.categoryId === id);
 
   // Subcategories: use CATEGORY_GROUPS items where available.
   const subcategories = CATEGORY_GROUPS.find((g) => g.id === id)?.items ?? [];
