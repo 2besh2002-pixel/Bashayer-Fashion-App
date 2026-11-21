@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Bashayer_Shopping_App_UI_v1",
-    "slug": "Bashayer_Shopping_App_UI_v1",
+    "slug": "bashayer-shopping-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -38,6 +38,17 @@
     ],
     "experiments": {
       "typedRoutes": false
-    }
+    },
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "f337a78f-325b-4eb2-820c-95e1eb39b05f"
+      }
+    },
+    "owner": "bashayerbamarhul"
   }
 }
