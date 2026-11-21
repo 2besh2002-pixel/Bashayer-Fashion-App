@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Platform, Pressable, View, useWindowDimensions, type ViewStyle } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, {
@@ -88,11 +88,11 @@ export function BottomNav({ state, navigateToTab }: BottomTabBarProps) {
 
   // Snap on first mount; animate every subsequent change (including rapid
   // repeated presses — Reanimated retargets the in-flight animation safely).
-  const isFirstLayout = useMemo(() => ({ value: true }), []);
+  const isFirstLayout = useRef(true);
   useEffect(() => {
-    if (isFirstLayout.value) {
+    if (isFirstLayout.current) {
       indicatorLeft.value = targetPercent;
-      isFirstLayout.value = false;
+      isFirstLayout.current = false;
       return;
     }
     indicatorLeft.value = withTiming(targetPercent, {
