@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Image, Pressable, View } from "react-native";
 
 import { AppText } from "@/src/components/ui/AppText";
@@ -113,8 +113,12 @@ export function ProductGrid({
   products: Product[];
   onPress: (product: Product) => void;
 }) {
-  const rows: Product[][] = [];
-  for (let i = 0; i < products.length; i += 2) rows.push(products.slice(i, i + 2));
+  // Memoize row construction to avoid recomputing on every parent render.
+  const rows = useMemo(() => {
+    const result: Product[][] = [];
+    for (let i = 0; i < products.length; i += 2) result.push(products.slice(i, i + 2));
+    return result;
+  }, [products]);
 
   return (
     <View className="px-[18px]">
