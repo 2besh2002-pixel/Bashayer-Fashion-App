@@ -79,20 +79,31 @@ export default function HomeScreen() {
         <SectionHeader title={t('shopByCategory')} actionLabel={t('viewAll')} onPressAction={() => router.push('/(tabs)/categories')} />
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 18, gap: 12 }}>
-          {CATEGORIES.map((cat, i) => (
-            <Pressable
-              key={cat.id}
-              onPress={() => router.push(i === 0 ? '/(tabs)/categories' : '/search')}
-              className="w-[84px] items-center active:opacity-70"
-            >
-              <View className="h-[72px] w-[72px] overflow-hidden rounded-full bg-chipBg">
-                <Image source={{ uri: cat.image }} className="h-full w-full" resizeMode="cover" />
-              </View>
-              <AppText weight={600} className="mt-2 text-center text-[9px] text-ink">
-                {pick(cat.name, lang)}
-              </AppText>
-            </Pressable>
-          ))}
+          {CATEGORIES.map((cat, i) => {
+            // Map category IDs to dedicated category routes.
+            const routeMap: Record<string, string> = {
+              dresses: '/categories/women',
+              men: '/categories/men',
+              shoes: '/categories/shoes-bags',
+              bags: '/categories/shoes-bags',
+              accessories: '/categories/kids',
+            };
+            const target = routeMap[cat.id] ?? '/(tabs)/categories';
+            return (
+              <Pressable
+                key={cat.id}
+                onPress={() => router.push(target)}
+                className="w-[84px] items-center active:opacity-70"
+              >
+                <View className="h-[72px] w-[72px] overflow-hidden rounded-full bg-chipBg">
+                  <Image source={{ uri: cat.image }} className="h-full w-full" resizeMode="cover" />
+                </View>
+                <AppText weight={600} className="mt-2 text-center text-[9px] text-ink">
+                  {pick(cat.name, lang)}
+                </AppText>
+              </Pressable>
+            );
+          })}
         </ScrollView>
 
         <Pressable

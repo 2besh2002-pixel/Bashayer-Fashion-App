@@ -35,6 +35,16 @@ export const CATEGORY_GROUPS: CategoryGroup[] = [
     ],
   },
   {
+    id: "kids",
+    name: { ar: "أطفال", en: "Kids" },
+    image: CATEGORIES[4].image,
+    items: [
+      { ar: "أزياء أطفال", en: "Kids’ fashion" },
+      { ar: "أحذية أطفال", en: "Kids’ shoes" },
+      { ar: "إكسسوارات أطفال", en: "Kids’ accessories" },
+    ],
+  },
+  {
     id: "shoes-bags",
     name: { ar: "الأحذية والحقائب", en: "Shoes & bags" },
     image: CATEGORIES[3].image,
