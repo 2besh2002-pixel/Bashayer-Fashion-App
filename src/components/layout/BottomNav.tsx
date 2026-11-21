@@ -64,8 +64,10 @@ export function BottomNav({ state, navigateToTab }: BottomTabBarProps) {
           const isHome = tab.key === "home";
           const iconSize = isHome ? HOME_ICON_SIZE : NAV_ICON_SIZE;
           // Home tab: larger 44px circle. Other tabs: 34px rounded rect.
-          const containerSize = isHome ? 44 : 34;
-          const containerRadius = isHome ? "rounded-full" : "rounded-xl";
+          // Static class strings so Tailwind's JIT scanner detects them.
+          const containerClass = isHome
+            ? "h-[44px] w-[44px] rounded-full"
+            : "h-[34px] w-[34px] rounded-xl";
           const activeBgStyle = active ? { backgroundColor: isHome ? colors.wine : "#f2e6e8" } : undefined;
           const iconColor = active ? "#ffffff" : INACTIVE_ICON;
           const labelColor = active ? colors.wine : LABEL_INACTIVE;
@@ -80,7 +82,7 @@ export function BottomNav({ state, navigateToTab }: BottomTabBarProps) {
               style={{ paddingTop: 6 }}
             >
               <View
-                className={`h-[${containerSize}px] w-[${containerSize}px] items-center justify-center ${containerRadius} relative`}
+                className={`${containerClass} items-center justify-center relative`}
                 style={{ marginTop: isHome ? -12 : 0 }}
               >
                 {active ? (
