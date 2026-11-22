@@ -59,7 +59,10 @@ export function Button({
       className={`h-[50px] w-full flex-row items-center justify-center gap-2.5 rounded-xl px-4 ${BG[variant]} ${
         isDisabled ? "opacity-50" : "active:opacity-80"
       } ${className}`}
-      style={style}
+      style={[
+        { flexDirection: "row", alignItems: "center", justifyContent: "center" },
+        style,
+      ]}
     >
       {loading ? (
         <ActivityIndicator color={variant === "secondary" || variant === "ghost" ? colors.ink : "#fff"} />
@@ -72,7 +75,13 @@ export function Button({
               color={variant === "secondary" || variant === "ghost" ? colors.ink : "#fff"}
             />
           ) : null}
-          <AppText weight={700} className={`text-[12px] ${FG[variant]}`}>
+          <AppText
+            weight={700}
+            className={`text-[12px] ${FG[variant]} ${
+              !iconLeft && !iconRight ? "flex-1" : ""
+            }`}
+            style={{ textAlign: "center" }}
+          >
             {children}
           </AppText>
           {iconRight ? (

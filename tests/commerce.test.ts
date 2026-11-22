@@ -67,8 +67,8 @@ describe("phone + OTP validation", () => {
     expect(toFullPhone("+966", "500000000")).toBe("+966500000000");
   });
 
-  test("requires exactly six digits for OTP", () => {
-    expect(isValidOtp(["1", "2", "3", "4", "5", "6"])).toBe(true);
-    expect(isValidOtp(["1", "2", "3", "", "5", "6"])).toBe(false);
+  test("requires exactly four digits for OTP", () => {
+    expect(isValidOtp(["1", "2", "3", "4"])).toBe(true);
+    expect(isValidOtp(["1", "2", "3", ""])).toBe(false);
   });
 });

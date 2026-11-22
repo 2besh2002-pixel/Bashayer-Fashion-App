@@ -19,14 +19,18 @@ export function EmptyState({ icon, title, text, actionLabel, onAction }: EmptySt
       <View className="mb-[22px] h-[82px] w-[82px] items-center justify-center rounded-full bg-[#f4eee9]">
         <Icon name={icon} size={34} color="#6b2637" />
       </View>
-      <AppText weight={700} className="mb-2 text-center text-[20px] text-ink">
+      <AppText weight={700} className="mb-2 text-center  text-[20px] text-ink">
         {title}
       </AppText>
       <AppText className="mb-6 max-w-[280px] text-center text-[11px] leading-[1.8] text-muted">
         {text}
       </AppText>
-      <View className="w-auto self-center">
-        <Button onPress={onAction} className="px-6">
+      <View className="self-center">
+        <Button
+          onPress={onAction}
+          className="px-6  items-center justify-center"
+          style={{ justifyContent: "center", alignItems: "center" }}
+        >
           {actionLabel}
         </Button>
       </View>

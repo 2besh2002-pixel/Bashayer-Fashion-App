@@ -78,10 +78,10 @@ export function toFullPhone(countryCode: string, phone: string): string {
   return digits ? `${countryCode}${digits}` : "";
 }
 
-/** Accepts six single-digit entries or a joined six-digit code. */
+/** Accepts four single-digit entries or a joined four-digit code. */
 export function isValidOtp(code: string | string[]): boolean {
   const joined = Array.isArray(code) ? code.join("") : code;
-  return /^\d{6}$/.test(joined);
+  return /^\d{4}$/.test(joined);
 }
 
 export function validatePhone(values: PhoneValues): FieldErrors<"phone"> {

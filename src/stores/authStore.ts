@@ -107,7 +107,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     return result.ok ? null : result.error;
   },
 
-  /** Any 6 digits are accepted for this UI prototype; a demo token is issued. */
+  /** Any 4 digits are accepted for this UI prototype; a demo token is issued. */
   verifyOtp: async (phone, code) => {
     set({ status: "authenticating" });
     const result = await repositories.auth.verifyOtp(phone, code);

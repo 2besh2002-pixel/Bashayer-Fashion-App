@@ -29,7 +29,7 @@ import {
   type FieldErrors,
 } from '@/src/utils/validation';
 
-const OTP_LENGTH = 6;
+const OTP_LENGTH = 4;
 
 const COUNTRIES: readonly { code: string; flag: string; label: TranslationKey }[] = [
   { code: '+966', flag: 'SA', label: 'countrySA' },
@@ -206,6 +206,10 @@ export default function RegisterScreen() {
   const [otp, setOtp] = useState<string[]>(() => Array.from({ length: OTP_LENGTH }, () => ''));
   const otpRefs = useRef<({ focus: () => void } | null)[]>([]);
 
+  const isOtpComplete = otp.every((digit) => digit !== '');
+  const incompleteOtp = !isOtpComplete && otp.some((digit) => digit !== '');
+  const otpError = errors.otp ?? (incompleteOtp ? 'errOtpInvalid' : null);
+
   const busy = status === 'authenticating';
   const fullPhone = toFullPhone(country.code, phone);
   const phoneTail = phoneDigits(fullPhone).slice(-3).padStart(3, '•');
@@ -239,10 +243,35 @@ export default function RegisterScreen() {
   };
 
   const updateOtp = (index: number, value: string) => {
-    const digit = value.replace(/\D/g, '').slice(-1);
+    const digits = value.replace(/\D/g, '');
+
+    if (digits.length > 1) {
+      // A multi-digit value (e.g. a paste): spread the code across the boxes.
+      const pasted = digits.slice(0, OTP_LENGTH).split('');
+      const start = pasted.length >= OTP_LENGTH ? 0 : Math.min(index, OTP_LENGTH - pasted.length);
+      setOtp((current) => {
+        const next = [...current];
+        if (pasted.length >= OTP_LENGTH) {
+          // A complete code fills every box.
+          for (let i = 0; i < OTP_LENGTH; i++) next[i] = pasted[i] ?? '';
+        } else {
+          pasted.forEach((digit, offset) => {
+            next[Math.min(start + offset, OTP_LENGTH - 1)] = digit;
+          });
+        }
+        return next;
+      });
+      if (pasted.length < OTP_LENGTH) {
+        const lastFilled = Math.min(start + pasted.length - 1, OTP_LENGTH - 1);
+        otpRefs.current[Math.min(lastFilled + 1, OTP_LENGTH - 1)]?.focus();
+      }
+      return;
+    }
+
+    const digit = digits.slice(-1);
     setOtp((current) => current.map((item, i) => (i === index ? digit : item)));
     if (digit && index < OTP_LENGTH - 1) otpRefs.current[index + 1]?.focus();
-    if (!digit && index > 0) otpRefs.current[index - 1]?.focus();
+    if (!digit && index > 0 && otp[index] === '') otpRefs.current[index - 1]?.focus();
   };
 
   const verify = async () => {
@@ -361,7 +390,6 @@ export default function RegisterScreen() {
                       }
                     }}
                     keyboardType="number-pad"
-                    maxLength={1}
                     textContentType={index === 0 ? 'oneTimeCode' : undefined}
                     autoComplete={index === 0 ? 'one-time-code' : 'off'}
                     accessibilityLabel={`${t('verificationCode')} ${index + 1}`}
@@ -372,12 +400,12 @@ export default function RegisterScreen() {
                       direction: 'ltr',
                       writingDirection: 'ltr',
                       textAlign: 'center',
-                      borderColor: errors.otp ? colors.wine : colors.line,
+                      borderColor: otpError ? colors.wine : colors.line,
                     }}
                   />
                 ))}
               </View>
-              {errors.otp ? <ErrorBox message={errors.otp} isRTL={isRTL} /> : null}
+              {otpError ? <ErrorBox message={otpError} isRTL={isRTL} /> : null}
               {formError ? <ErrorBox message={formError} isRTL={isRTL} /> : null}
 
               <View className="my-4 flex-row items-center justify-between gap-2.5">
@@ -394,7 +422,7 @@ export default function RegisterScreen() {
                 </Pressable>
               </View>
 
-              <Button onPress={verify} loading={busy} iconRight="arrow">
+              <Button onPress={verify} loading={busy} iconRight="arrow" disabled={!isOtpComplete}>
                 {t('verifyContinue')}
               </Button>
 

@@ -608,7 +608,9 @@ function HomeHeader({
       <div className="account-strip">
         <button className="search-trigger" onClick={onSearch}>
           <Icon name="search" size={18} />
-          <span>{t("ابحثي عن فستان، حقيبة، أو علامة...", "Search dresses, bags or brands...")}</span>
+          <span>
+            {t("ابحثي عن فستان، حقيبة، أو علامة...", "Search dresses, bags or brands...")}
+          </span>
         </button>
         {loggedIn ? (
           <button className="account-link" onClick={onLogout}>
@@ -2046,7 +2048,9 @@ function CurrencySheet({ t, isAr, selected, query, setQuery, select, close }: an
         <div className="sheet-head">
           <div>
             <h2>{t("اختاري العملة", "Choose currency")}</h2>
-            <p>{t("تُعرض الأسعار دون خلط بين العملات", "Prices are never mixed across currencies")}</p>
+            <p>
+              {t("تُعرض الأسعار دون خلط بين العملات", "Prices are never mixed across currencies")}
+            </p>
           </div>
           <button onClick={close}>
             <Icon name="close" />

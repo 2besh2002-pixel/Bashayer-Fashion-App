@@ -533,17 +533,17 @@ export const translations = {
   },
   verifyPhoneTitle: { ar: "تحققي من رقم جوالكِ", en: "Verify your phone number" },
   verifyPhoneText: {
-    ar: "أدخلي رمز التحقق المكوّن من ٦ أرقام للرقم",
-    en: "Enter the 6-digit verification code for",
+    ar: "أدخلي رمز التحقق المكوّن من ٤ أرقام للرقم",
+    en: "Enter the 4-digit verification code for",
   },
   verificationCode: { ar: "رمز التحقق", en: "Verification code" },
   errOtpInvalid: {
-    ar: "أدخلي رمز التحقق المكوّن من ٦ أرقام.",
-    en: "Enter the 6-digit verification code.",
+    ar: "أدخلي رمز التحقق المكوّن من ٤ أرقام.",
+    en: "Enter the 4-digit verification code.",
   },
   otpDemoDisclosure: {
-    ar: "معاينة واجهة فقط — لم يتم إرسال رمز SMS فعلي. أدخلي أي ٦ أرقام لاستعراض حالة النجاح.",
-    en: "UI preview only — no real SMS was sent. Enter any 6 digits to preview the success state.",
+    ar: "معاينة واجهة فقط — لم يتم إرسال رمز SMS فعلي. أدخلي أي ٤ أرقام لاستعراض حالة النجاح.",
+    en: "UI preview only — no real SMS was sent. Enter any 4 digits to preview the success state.",
   },
   resendIn: { ar: "يمكنكِ إعادة الإرسال بعد", en: "You can resend in" },
   resendCode: { ar: "إعادة إرسال الرمز", en: "Resend code" },

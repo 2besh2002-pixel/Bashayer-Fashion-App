@@ -12,7 +12,7 @@ import type { AuthRepository, PhoneRegistrationInput } from "@/src/repositories/
  * as secure. A real implementation would call the store Middleware auth endpoints
  * (see ENDPOINTS.auth) and keep the returned access token in SecureStore only.
  *
- * The phone + OTP flow is likewise a UI prototype: any 6 digits are accepted and
+ * The phone + OTP flow is likewise a UI prototype: any 4 digits are accepted and
  * no SMS is ever sent. Only public profile fields are persisted to AsyncStorage.
  */
 
@@ -200,7 +200,7 @@ export const mockAuthRepository: AuthRepository = {
   },
 
   async verifyOtp(phone, code) {
-    if (!/^\d{6}$/.test(phoneDigits(code))) {
+    if (!/^\d{4}$/.test(phoneDigits(code))) {
       return { ok: false, error: "errOtpInvalid" };
     }
     const users = await readUsers();

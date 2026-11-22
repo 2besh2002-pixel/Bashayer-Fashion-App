@@ -18,7 +18,7 @@ describe("local demo phone + OTP authentication", () => {
     const requested = await mockAuthRepository.requestOtp("+966500000000");
     expect(requested.ok).toBe(true);
 
-    const verified = await mockAuthRepository.verifyOtp("+966500000000", "123456");
+    const verified = await mockAuthRepository.verifyOtp("+966500000000", "1234");
     expect(verified.ok).toBe(true);
     if (verified.ok) expect(verified.data.user.phone).toBe("+966500000000");
   });
@@ -51,8 +51,10 @@ describe("local demo phone + OTP authentication", () => {
     expect(raw).toContain("+966555555555");
   });
 
-  test("OTP requires exactly six digits", async () => {
-    const bad = await mockAuthRepository.verifyOtp("+966500000000", "123");
-    expect(bad.ok).toBe(false);
+  test("OTP requires exactly four digits", async () => {
+    const short = await mockAuthRepository.verifyOtp("+966500000000", "123");
+    expect(short.ok).toBe(false);
+    const long = await mockAuthRepository.verifyOtp("+966500000000", "12345");
+    expect(long.ok).toBe(false);
   });
 });
