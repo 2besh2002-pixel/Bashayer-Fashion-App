@@ -1,26 +1,27 @@
-import { useState } from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
+import { useState } from "react";
+import { Pressable, ScrollView, View } from "react-native";
 
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from "expo-router";
 
-import { AppText } from '@/src/components/ui/AppText';
-import { AppTextInput } from '@/src/components/ui/AppTextInput';
-import { ProductGrid } from '@/src/components/commerce/ProductCard';
-import { Screen } from '@/src/components/ui/Screen';
-import { useTranslation } from '@/src/hooks/useTranslation';
-import { getCategoryByRoute, getProductsByRoute } from '@/src/data/categories';
+import { ProductGrid } from "@/src/components/commerce/ProductCard";
+import { AppText } from "@/src/components/ui/AppText";
+import { AppTextInput } from "@/src/components/ui/AppTextInput";
+import { PageHeader } from "@/src/components/ui/PageHeader";
+import { Screen } from "@/src/components/ui/Screen";
+import { getCategoryByRoute, getProductsByRoute } from "@/src/data/categories";
+import { useCatalogProducts } from "@/src/hooks/useCatalogProducts";
+import { useTranslation } from "@/src/hooks/useTranslation";
+import type { TranslationKey } from "@/src/i18n/translations";
+import type { Product, ProductColor } from "@/src/types";
 import {
   availableColorIds,
   availableSizeIds,
   filterProducts,
-} from '@/src/utils/filterProducts';
-import { pick } from '@/src/utils/format';
-import { PageHeader } from '@/src/components/ui/PageHeader';
-import type { Product, ProductColor } from '@/src/types';
-import type { TranslationKey } from '@/src/i18n/translations';
-import { useCatalogProducts } from '@/src/hooks/useCatalogProducts';
+  productPriceRange,
+} from "@/src/utils/filterProducts";
+import { pick } from "@/src/utils/format";
 
-type SortOption = 'newest' | 'priceAsc' | 'priceDesc' | 'rating';
+type SortOption = "newest" | "priceAsc" | "priceDesc" | "rating";
 
 /**
  * Dedicated category listing screen.
@@ -37,8 +38,8 @@ export default function CategoryListingScreen() {
   const { t, lang } = useTranslation();
   const { products, isLoading, hasError, retry } = useCatalogProducts();
   const [sort, setSort] = useState<SortOption | null>(null);
-  const [minPrice, setMinPrice] = useState('');
-  const [maxPrice, setMaxPrice] = useState('');
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [inStockOnly, setInStockOnly] = useState(false);
@@ -47,11 +48,11 @@ export default function CategoryListingScreen() {
   // Main categories carry real names; legacy ids map to existing translation keys.
   const main = getCategoryByRoute(id);
   const titleKeyMap: Record<string, string> = {
-    dresses: 'categoryDresses',
-    bags: 'categoryBags',
-    shoes: 'categoryShoes',
-    accessories: 'categoryAccessories',
-    'shoes-bags': 'shoesAndBags',
+    dresses: "categoryDresses",
+    bags: "categoryBags",
+    shoes: "categoryShoes",
+    accessories: "categoryAccessories",
+    "shoes-bags": "shoesAndBags",
   };
   const title = main ? pick(main.name, lang) : t((titleKeyMap[id] ?? id) as TranslationKey);
 
@@ -75,8 +76,8 @@ export default function CategoryListingScreen() {
     }
   }
   const availableColorIdsInCategory = new Set(baseProducts.flatMap((p) => availableColorIds(p)));
-  const availableColorList = Array.from(colorMap.values()).filter(
-    (color) => availableColorIdsInCategory.has(color.id),
+  const availableColorList = Array.from(colorMap.values()).filter((color) =>
+    availableColorIdsInCategory.has(color.id),
   );
   const availableSizes = Array.from(new Set(baseProducts.flatMap((p) => availableSizeIds(p))));
   const sizeLabelById = (sizeId: string): string => {
@@ -108,10 +109,17 @@ export default function CategoryListingScreen() {
     hasDiscount: discountsOnly || undefined,
   });
 
-  if (sort === 'newest') displayedProducts = [...displayedProducts].sort((a, b) => b.id - a.id);
-  else if (sort === 'priceAsc') displayedProducts = [...displayedProducts].sort((a, b) => a.price - b.price);
-  else if (sort === 'priceDesc') displayedProducts = [...displayedProducts].sort((a, b) => b.price - a.price);
-  else if (sort === 'rating') displayedProducts = [...displayedProducts].sort((a, b) => b.rating - a.rating);
+  if (sort === "newest") displayedProducts = [...displayedProducts].sort((a, b) => b.id - a.id);
+  else if (sort === "priceAsc") {
+    displayedProducts = [...displayedProducts].sort(
+      (a, b) => productPriceRange(a).min - productPriceRange(b).min,
+    );
+  } else if (sort === "priceDesc") {
+    displayedProducts = [...displayedProducts].sort(
+      (a, b) => productPriceRange(b).max - productPriceRange(a).max,
+    );
+  } else if (sort === "rating")
+    displayedProducts = [...displayedProducts].sort((a, b) => b.rating - a.rating);
 
   const toggleColor = (id: string) =>
     setSelectedColors((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
@@ -121,8 +129,8 @@ export default function CategoryListingScreen() {
   const toggleDiscounts = () => setDiscountsOnly((v) => !v);
 
   const resetFilters = () => {
-    setMinPrice('');
-    setMaxPrice('');
+    setMinPrice("");
+    setMaxPrice("");
     setSelectedColors([]);
     setSelectedSizes([]);
     setInStockOnly(false);
@@ -132,40 +140,52 @@ export default function CategoryListingScreen() {
   const chooseSubcategory = (label?: string) => router.setParams({ subcategory: label });
 
   const sortOptions: { key: SortOption; label: string }[] = [
-    { key: 'newest', label: t('sortNewest') },
-    { key: 'priceAsc', label: t('sortPriceAsc') },
-    { key: 'priceDesc', label: t('sortPriceDesc') },
-    { key: 'rating', label: t('sortRating') },
+    { key: "newest", label: t("sortNewest") },
+    { key: "priceAsc", label: t("sortPriceAsc") },
+    { key: "priceDesc", label: t("sortPriceDesc") },
+    { key: "rating", label: t("sortRating") },
   ];
 
-  const hasFilters = inStockOnly || discountsOnly || selectedColors.length || selectedSizes.length || validMin != null || validMax != null;
+  const hasFilters =
+    inStockOnly ||
+    discountsOnly ||
+    selectedColors.length ||
+    selectedSizes.length ||
+    validMin != null ||
+    validMax != null;
 
   return (
-    <Screen edges={['top', 'bottom']}>
+    <Screen edges={["top", "bottom"]}>
       <PageHeader title={title} showBack />
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 24 }}
+      >
         {isLoading ? (
-          <AppText className="px-[18px] py-4 text-[10px] text-muted">{t('loading')}</AppText>
+          <AppText className="px-[18px] py-4 text-[10px] text-muted">{t("loading")}</AppText>
         ) : hasError ? (
           <Pressable onPress={retry} className="px-[18px] py-4">
-            <AppText className="text-[10px] text-muted">{t('retry')}</AppText>
+            <AppText className="text-[10px] text-muted">{t("retry")}</AppText>
           </Pressable>
         ) : null}
         {/* Subcategory filters — narrow products within this category */}
         {subcategories.length > 0 ? (
           <View className="mt-2 px-[18px]">
             <AppText weight={700} className="text-[16px] text-ink">
-              {t('subcategories')}
+              {t("subcategories")}
             </AppText>
             <View className="mt-3 flex-row flex-wrap gap-2">
               <Pressable
                 onPress={() => chooseSubcategory(undefined)}
                 className={`rounded-full border px-3 py-1.5 active:opacity-70 ${
-                  !hasSubcategoryFilter ? 'border-ink bg-ink' : 'border-line bg-paper'
+                  !hasSubcategoryFilter ? "border-ink bg-ink" : "border-line bg-paper"
                 }`}
               >
-                <AppText weight={600} className={`text-[10px] ${!hasSubcategoryFilter ? 'text-white' : 'text-ink'}`}>
-                  {t('allCategoryItems')}
+                <AppText
+                  weight={600}
+                  className={`text-[10px] ${!hasSubcategoryFilter ? "text-white" : "text-ink"}`}
+                >
+                  {t("allCategoryItems")}
                 </AppText>
               </Pressable>
               {subcategories.map((item) => {
@@ -176,10 +196,13 @@ export default function CategoryListingScreen() {
                     key={item.id}
                     onPress={() => chooseSubcategory(label)}
                     className={`rounded-full border px-3 py-1.5 active:opacity-70 ${
-                      isActive ? 'border-ink bg-ink' : 'border-line bg-paper'
+                      isActive ? "border-ink bg-ink" : "border-line bg-paper"
                     }`}
                   >
-                    <AppText weight={600} className={`text-[10px] ${isActive ? 'text-white' : 'text-ink'}`}>
+                    <AppText
+                      weight={600}
+                      className={`text-[10px] ${isActive ? "text-white" : "text-ink"}`}
+                    >
                       {label}
                     </AppText>
                   </Pressable>
@@ -190,7 +213,7 @@ export default function CategoryListingScreen() {
             {/* Compact sort control */}
             <View className="mt-4 flex-row flex-wrap items-center gap-2">
               <AppText weight={600} className="text-[11px] text-muted">
-                {t('sort')}
+                {t("sort")}
               </AppText>
               {sortOptions.map((option) => {
                 const isActive = sort === option.key;
@@ -199,10 +222,10 @@ export default function CategoryListingScreen() {
                     key={option.key}
                     onPress={() => setSort((prev) => (prev === option.key ? null : option.key))}
                     className={`rounded-full border px-2.5 py-1 active:opacity-70 ${
-                      isActive ? 'border-wine bg-wine' : 'border-line bg-paper'
+                      isActive ? "border-wine bg-wine" : "border-line bg-paper"
                     }`}
                   >
-                    <AppText className={`text-[9px] ${isActive ? 'text-white' : 'text-ink'}`}>
+                    <AppText className={`text-[9px] ${isActive ? "text-white" : "text-ink"}`}>
                       {option.label}
                     </AppText>
                   </Pressable>
@@ -216,13 +239,13 @@ export default function CategoryListingScreen() {
         {availableColorList.length || availableSizes.length || hasFilters ? (
           <View className="mt-2 px-[18px]">
             <AppText weight={700} className="text-[14px] text-ink">
-              {t('filterTitle')}
+              {t("filterTitle")}
             </AppText>
 
             {availableColorList.length ? (
               <View className="mt-3 flex-row flex-wrap gap-2">
                 <AppText weight={600} className="self-center text-[10px] text-muted">
-                  {t('color')}
+                  {t("color")}
                 </AppText>
                 {availableColorList.map((color) => {
                   const isActive = selectedColors.includes(color.id);
@@ -231,14 +254,14 @@ export default function CategoryListingScreen() {
                       key={color.id}
                       onPress={() => toggleColor(color.id)}
                       className={`flex-row items-center gap-1.5 rounded-full border px-2.5 py-1 active:opacity-70 ${
-                        isActive ? 'border-wine bg-wine' : 'border-line bg-paper'
+                        isActive ? "border-wine bg-wine" : "border-line bg-paper"
                       }`}
                     >
                       <View
                         className="h-2 w-2 rounded-full border border-line"
                         style={{ backgroundColor: color.hex }}
                       />
-                      <AppText className={`text-[9px] ${isActive ? 'text-white' : 'text-ink'}`}>
+                      <AppText className={`text-[9px] ${isActive ? "text-white" : "text-ink"}`}>
                         {pick(color.name, lang)}
                       </AppText>
                     </Pressable>
@@ -250,7 +273,7 @@ export default function CategoryListingScreen() {
             {availableSizes.length ? (
               <View className="mt-2 flex-row flex-wrap gap-2">
                 <AppText weight={600} className="self-center text-[10px] text-muted">
-                  {t('size')}
+                  {t("size")}
                 </AppText>
                 {availableSizes.map((sizeId) => {
                   const isActive = selectedSizes.includes(sizeId);
@@ -259,10 +282,10 @@ export default function CategoryListingScreen() {
                       key={sizeId}
                       onPress={() => toggleSize(sizeId)}
                       className={`rounded-full border px-2.5 py-1 active:opacity-70 ${
-                        isActive ? 'border-wine bg-wine' : 'border-line bg-paper'
+                        isActive ? "border-wine bg-wine" : "border-line bg-paper"
                       }`}
                     >
-                      <AppText className={`text-[9px] ${isActive ? 'text-white' : 'text-ink'}`}>
+                      <AppText className={`text-[9px] ${isActive ? "text-white" : "text-ink"}`}>
                         {sizeLabelById(sizeId)}
                       </AppText>
                     </Pressable>
@@ -271,15 +294,17 @@ export default function CategoryListingScreen() {
               </View>
             ) : null}
 
-            {baseProducts.some((p) => p.compareAt != null || p.colors.some((c) => c.compareAt != null)) ? (
+            {baseProducts.some(
+              (p) => p.compareAt != null || p.colors.some((c) => c.compareAt != null),
+            ) ? (
               <Pressable
                 onPress={toggleDiscounts}
                 className={`mt-2 rounded-full border px-2.5 py-1 active:opacity-70 ${
-                  discountsOnly ? 'border-wine bg-wine' : 'border-line bg-paper'
+                  discountsOnly ? "border-wine bg-wine" : "border-line bg-paper"
                 }`}
               >
-                <AppText className={`text-[9px] ${discountsOnly ? 'text-white' : 'text-ink'}`}>
-                  {t('discountsOnly')}
+                <AppText className={`text-[9px] ${discountsOnly ? "text-white" : "text-ink"}`}>
+                  {t("discountsOnly")}
                 </AppText>
               </Pressable>
             ) : null}
@@ -288,16 +313,19 @@ export default function CategoryListingScreen() {
               <Pressable
                 onPress={toggleInStock}
                 className={`rounded-full border px-2.5 py-1 active:opacity-70 ${
-                  inStockOnly ? 'border-wine bg-wine' : 'border-line bg-paper'
+                  inStockOnly ? "border-wine bg-wine" : "border-line bg-paper"
                 }`}
               >
-                <AppText className={`text-[9px] ${inStockOnly ? 'text-white' : 'text-ink'}`}>
-                  {t('inStockOnly')}
+                <AppText className={`text-[9px] ${inStockOnly ? "text-white" : "text-ink"}`}>
+                  {t("inStockOnly")}
                 </AppText>
               </Pressable>
               {hasFilters ? (
-                <Pressable onPress={resetFilters} className="rounded-full border border-line px-2.5 py-1 active:opacity-70">
-                  <AppText className="text-[9px] text-ink">{t('reset')}</AppText>
+                <Pressable
+                  onPress={resetFilters}
+                  className="rounded-full border border-line px-2.5 py-1 active:opacity-70"
+                >
+                  <AppText className="text-[9px] text-ink">{t("reset")}</AppText>
                 </Pressable>
               ) : null}
             </View>
@@ -306,7 +334,7 @@ export default function CategoryListingScreen() {
               <AppTextInput
                 value={minPrice}
                 onChangeText={setMinPrice}
-                placeholder={t('minPrice')}
+                placeholder={t("minPrice")}
                 placeholderTextColor="#9a928b"
                 keyboardType="numeric"
                 className="flex-1 text-[9px] text-ink"
@@ -314,7 +342,7 @@ export default function CategoryListingScreen() {
               <AppTextInput
                 value={maxPrice}
                 onChangeText={setMaxPrice}
-                placeholder={t('maxPrice')}
+                placeholder={t("maxPrice")}
                 placeholderTextColor="#9a928b"
                 keyboardType="numeric"
                 className="flex-1 text-[9px] text-ink"
@@ -328,18 +356,21 @@ export default function CategoryListingScreen() {
           <>
             <View className="mt-5 px-[18px]">
               <AppText weight={700} className="text-[16px] text-ink">
-                {t('exploreCollection')}
+                {t("exploreCollection")}
               </AppText>
             </View>
-            <ProductGrid products={displayedProducts} onPress={(p) => router.push(`/product/${p.id}`)} />
+            <ProductGrid
+              products={displayedProducts}
+              onPress={(p) => router.push(`/product/${p.id}`)}
+            />
           </>
         ) : (
           <View className="items-center justify-center px-8 py-16">
             <AppText weight={700} className="text-[16px] text-ink">
-              {t('noResults')}
+              {t("noResults")}
             </AppText>
             <AppText className="mt-2 text-center text-[11px] text-muted">
-              {t('noResultsHint')}
+              {t("noResultsHint")}
             </AppText>
           </View>
         )}

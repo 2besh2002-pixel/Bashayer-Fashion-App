@@ -1,4 +1,5 @@
 import { PRODUCTS } from "../src/data/products";
+import type { Product } from "../src/types";
 import {
   filterProducts,
   productHasDiscount,
@@ -60,6 +61,72 @@ describe("product filtering", () => {
     ]);
     expect(filterProducts(PRODUCTS, { availableSizes: ["xl"] }).map((p) => p.id)).toEqual([
       1, 3, 5, 8, 10, 11, 13,
+    ]);
+  });
+
+  test("filters by color AND size only when the color offers that size", () => {
+    // Product 2 (Calypso bag) offers Black but has no sizes — Black+S must not match it.
+    const withBlackS = filterProducts(PRODUCTS, {
+      availableColors: ["black"],
+      availableSizes: ["s"],
+    });
+    expect(withBlackS.map((p) => p.id)).toEqual([11]); // product 11 offers Black+S
+    expect(withBlackS.map((p) => p.id)).not.toContain(2);
+    // Product 4 (sculpted heel) offers Black at size 36; Black+36 matches it.
+    expect(
+      filterProducts(PRODUCTS, { availableColors: ["black"], availableSizes: ["36"] }).map(
+        (p) => p.id,
+      ),
+    ).toEqual([4]);
+  });
+
+  test("a size offered only on another color does not satisfy the filter", () => {
+    const product: Product = {
+      id: 200,
+      slug: "synthetic-white-black",
+      name: { ar: "قطعة", en: "Piece" },
+      price: 100,
+      rating: 4,
+      reviewCount: 0,
+      images: [],
+      categoryId: "women",
+      subcategoryId: "dresses",
+      description: { ar: "قطعة", en: "Piece" },
+      colors: [
+        {
+          id: "white",
+          name: { ar: "بيضاء", en: "White" },
+          hex: "#ffffff",
+          available: true,
+          images: [],
+          sizes: [
+            { id: "m", label: "M", available: true },
+            { id: "l", label: "L", available: true },
+          ],
+        },
+        {
+          id: "black",
+          name: { ar: "سوداء", en: "Black" },
+          hex: "#111111",
+          available: true,
+          images: [],
+          sizes: [{ id: "s", label: "S", available: true }],
+        },
+      ],
+    };
+    // White is offered in M and L only — filtering White+S must not match.
+    expect(filterProducts([product], { availableColors: ["white"], availableSizes: ["s"] })).toEqual(
+      [],
+    );
+    // Filtering Black+S matches: the product offers Black in S.
+    expect(
+      filterProducts([product], { availableColors: ["black"], availableSizes: ["s"] }).map(
+        (p) => p.id,
+      ),
+    ).toEqual([200]);
+    // Colors alone still match it.
+    expect(filterProducts([product], { availableColors: ["white"] }).map((p) => p.id)).toEqual([
+      200,
     ]);
   });
 

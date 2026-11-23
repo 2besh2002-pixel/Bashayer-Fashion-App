@@ -2,20 +2,20 @@ import { useRouter } from "expo-router";
 import { Pressable, ScrollView, View } from "react-native";
 
 import { EmptyState } from "@/src/components/commerce/EmptyState";
+import { ProductImage } from "@/src/components/commerce/ProductImage";
 import { AppText } from "@/src/components/ui/AppText";
 import { Button } from "@/src/components/ui/Button";
 import { Icon } from "@/src/components/ui/Icon";
 import { Screen } from "@/src/components/ui/Screen";
-import { usePrice } from "@/src/hooks/usePrice";
 import { useCatalogProducts } from "@/src/hooks/useCatalogProducts";
+import { usePrice } from "@/src/hooks/usePrice";
 import { useTranslation } from "@/src/hooks/useTranslation";
 import { useCartStore } from "@/src/stores/cartStore";
 import { useUiStore } from "@/src/stores/uiStore";
 import { useWishlistStore } from "@/src/stores/wishlistStore";
-import { pick } from "@/src/utils/format";
-import { availableColorSizeCombos } from "@/src/utils/filterProducts";
 import type { Product } from "@/src/types";
-import { ProductImage } from "@/src/components/commerce/ProductImage";
+import { availableColorSizeCombos } from "@/src/utils/filterProducts";
+import { pick } from "@/src/utils/format";
 
 export default function WishlistScreen() {
   const router = useRouter();
@@ -35,10 +35,12 @@ export default function WishlistScreen() {
   if (items.length === 0 && (isLoading || hasError)) {
     return (
       <Screen edges={["top", "bottom"]}>
-        <View className="border-b border-line bg-paper px-4 py-3">
-          <AppText weight={700} className="text-[16px] text-ink">
-            {t("titleWishlist")}
-          </AppText>
+        <View className="relative border-b border-line bg-paper px-4 py-3">
+          <View className="absolute bottom-0 left-0 right-0 top-0 items-center justify-center">
+            <AppText weight={700} align="center" className="text-[16px] text-ink">
+              {t("titleWishlist")}
+            </AppText>
+          </View>
         </View>
         <Pressable onPress={retry} className="flex-1 items-center justify-center">
           <AppText className="text-muted">{hasError ? t("retry") : t("loading")}</AppText>
@@ -50,10 +52,12 @@ export default function WishlistScreen() {
   if (items.length === 0) {
     return (
       <Screen edges={["top", "bottom"]}>
-        <View className="border-b border-line bg-paper px-4 py-3">
-          <AppText weight={700} className="text-[16px] text-ink justify-center">
-            {t("titleWishlist")}
-          </AppText>
+        <View className="relative border-b border-line bg-paper px-4 py-3">
+          <View className="absolute bottom-0 left-0 right-0 top-0 items-center justify-center">
+            <AppText weight={700} align="center" className="text-[16px] text-ink">
+              {t("titleWishlist")}
+            </AppText>
+          </View>
         </View>
         <EmptyState
           icon="heart"
@@ -68,10 +72,12 @@ export default function WishlistScreen() {
 
   return (
     <Screen edges={["top", "bottom"]}>
-      <View className="border-b border-line bg-paper px-4 py-3">
-        <AppText weight={700} className="text-[16px] text-ink">
-          {t("titleWishlist")}
-        </AppText>
+      <View className="relative border-b border-line bg-paper px-4 py-3">
+        <View className="absolute bottom-0 left-0 right-0 top-0 items-center justify-center">
+          <AppText weight={700} align="center" className="text-[16px] text-ink">
+            {t("titleWishlist")}
+          </AppText>
+        </View>
       </View>
       <ScrollView contentContainerStyle={{ padding: 18, gap: 12, paddingBottom: 24 }}>
         {items.map((p) => (

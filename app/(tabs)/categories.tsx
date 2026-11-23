@@ -1,12 +1,12 @@
-import { Image, Pressable, ScrollView, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter } from "expo-router";
+import { Image, Pressable, ScrollView, View } from "react-native";
 
-import { AppText } from '@/src/components/ui/AppText';
-import { Icon } from '@/src/components/ui/Icon';
-import { Screen } from '@/src/components/ui/Screen';
-import { useTranslation } from '@/src/hooks/useTranslation';
-import { MAIN_CATEGORIES } from '@/src/data/categories';
-import { pick } from '@/src/utils/format';
+import { AppText } from "@/src/components/ui/AppText";
+import { Icon } from "@/src/components/ui/Icon";
+import { Screen } from "@/src/components/ui/Screen";
+import { MAIN_CATEGORIES } from "@/src/data/categories";
+import { useTranslation } from "@/src/hooks/useTranslation";
+import { pick } from "@/src/utils/format";
 
 export default function CategoriesScreen() {
   const router = useRouter();
@@ -15,24 +15,36 @@ export default function CategoriesScreen() {
   const mainCategories = MAIN_CATEGORIES;
 
   return (
-    <Screen edges={['top', 'bottom']}>
-      <View className="border-b border-line bg-paper px-4 py-3">
-        <AppText weight={700} className="text-[16px] text-ink">
-          {t('titleCategories')}
-        </AppText>
+    <Screen edges={["top", "bottom"]}>
+      <View className="relative border-b border-line bg-paper px-4 py-3">
+        <View className="absolute bottom-0 left-0 right-0 top-0 items-center justify-center">
+          <AppText weight={700} align="center" className="text-[16px] text-ink">
+            {t("titleCategories")}
+          </AppText>
+        </View>
       </View>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 24 }}
+      >
         <View className="mt-2 flex-row gap-2 px-[18px]">
           {[
-            { id: 'all', label: t('all') },
+            { id: "all", label: t("all") },
             ...mainCategories.map((c) => ({ id: c.id, label: pick(c.name, lang) })),
           ].map((seg) => (
             <Pressable
               key={seg.id}
-              onPress={() => seg.id === 'all' ? router.push('/(tabs)/categories') : router.push(`/categories/${seg.id}`)}
-              className={`rounded-full px-3 py-1.5 ${seg.id === 'all' ? 'bg-ink' : 'bg-chipBg'}`}
+              onPress={() =>
+                seg.id === "all"
+                  ? router.push("/(tabs)/categories")
+                  : router.push(`/categories/${seg.id}`)
+              }
+              className={`rounded-full px-3 py-1.5 ${seg.id === "all" ? "bg-ink" : "bg-chipBg"}`}
             >
-              <AppText weight={600} className={`text-[10px] ${seg.id === 'all' ? 'text-white' : 'text-ink'}`}>
+              <AppText
+                weight={600}
+                className={`text-[10px] ${seg.id === "all" ? "text-white" : "text-ink"}`}
+              >
                 {seg.label}
               </AppText>
             </Pressable>
@@ -55,7 +67,7 @@ export default function CategoriesScreen() {
                       {pick(cat.name, lang)}
                     </AppText>
                     <AppText className="mt-1 text-[10px] text-white/90">
-                      {t('exploreCollection')}
+                      {t("exploreCollection")}
                     </AppText>
                   </View>
                 </View>
@@ -65,7 +77,9 @@ export default function CategoriesScreen() {
                   <Pressable
                     key={sub.id}
                     onPress={() =>
-                      router.push(`/categories/${cat.id}?subcategory=${encodeURIComponent(pick(sub.name, lang))}`)
+                      router.push(
+                        `/categories/${cat.id}?subcategory=${encodeURIComponent(pick(sub.name, lang))}`,
+                      )
                     }
                     className="flex-row items-center justify-between border-b border-line py-3 active:opacity-70"
                   >
@@ -81,13 +95,13 @@ export default function CategoriesScreen() {
         {/* Legacy shoes & bags entry */}
         <View className="mt-2 px-[18px]">
           <Pressable
-            onPress={() => router.push('/categories/shoes-bags')}
+            onPress={() => router.push("/categories/shoes-bags")}
             className="rounded-2xl border-b border-line pb-3 active:opacity-90"
           >
             <AppText serif weight={700} className="text-[20px] text-ink">
-              {t('shoesAndBags')}
+              {t("shoesAndBags")}
             </AppText>
-            <AppText className="mt-1 text-[10px] text-ink">{t('exploreCollection')}</AppText>
+            <AppText className="mt-1 text-[10px] text-ink">{t("exploreCollection")}</AppText>
           </Pressable>
         </View>
       </ScrollView>

@@ -1,25 +1,24 @@
-import { Pressable, ScrollView, View } from 'react-native';
-import { useState } from 'react';
-import { useRouter } from 'expo-router';
-
-import { AppText } from '@/src/components/ui/AppText';
-import { Button } from '@/src/components/ui/Button';
-import { EmptyState } from '@/src/components/commerce/EmptyState';
-import { Icon } from '@/src/components/ui/Icon';
-import { QuantityStepper } from '@/src/components/commerce/QuantityStepper';
-import { Screen } from '@/src/components/ui/Screen';
-import { SummaryRow } from '@/src/components/commerce/SummaryRow';
-import { AuthPromptDialog } from '@/src/components/ui/AuthPromptDialog';
-import { useTranslation } from '@/src/hooks/useTranslation';
-import { useCartDetailed, lineUnitPrice } from '@/src/hooks/useCartDetailed';
-import { useCatalogProducts } from '@/src/hooks/useCatalogProducts';
-import { useCartStore, MAX_QUANTITY, MIN_QUANTITY } from '@/src/stores/cartStore';
-import { usePrice } from '@/src/hooks/usePrice';
-import { useUiStore } from '@/src/stores/uiStore';
-import { useAuthStore } from '@/src/stores/authStore';
-import { pick } from '@/src/utils/format';
-import { resolveVariation } from '@/src/utils/productVariants';
-import { ProductImage } from '@/src/components/commerce/ProductImage';
+import { EmptyState } from "@/src/components/commerce/EmptyState";
+import { ProductImage } from "@/src/components/commerce/ProductImage";
+import { QuantityStepper } from "@/src/components/commerce/QuantityStepper";
+import { SummaryRow } from "@/src/components/commerce/SummaryRow";
+import { AppText } from "@/src/components/ui/AppText";
+import { AuthPromptDialog } from "@/src/components/ui/AuthPromptDialog";
+import { Button } from "@/src/components/ui/Button";
+import { Icon } from "@/src/components/ui/Icon";
+import { Screen } from "@/src/components/ui/Screen";
+import { lineUnitPrice, useCartDetailed } from "@/src/hooks/useCartDetailed";
+import { useCatalogProducts } from "@/src/hooks/useCatalogProducts";
+import { usePrice } from "@/src/hooks/usePrice";
+import { useTranslation } from "@/src/hooks/useTranslation";
+import { useAuthStore } from "@/src/stores/authStore";
+import { MAX_QUANTITY, MIN_QUANTITY, useCartStore } from "@/src/stores/cartStore";
+import { useUiStore } from "@/src/stores/uiStore";
+import { pick } from "@/src/utils/format";
+import { resolveVariation } from "@/src/utils/productVariants";
+import { useRouter } from "expo-router";
+import { useState } from "react";
+import { Pressable, ScrollView, View } from "react-native";
 
 export default function CartScreen() {
   const router = useRouter();
@@ -36,14 +35,16 @@ export default function CartScreen() {
 
   if (lines.length === 0 && (isLoading || hasError)) {
     return (
-      <Screen edges={['top', 'bottom']}>
-        <View className="border-b border-line bg-paper px-4 py-3">
-          <AppText weight={700} className="text-[16px] text-ink">
-            {t('titleCart')}
-          </AppText>
+      <Screen edges={["top", "bottom"]}>
+        <View className="relative border-b border-line bg-paper px-4 py-3">
+          <View className="absolute bottom-0 left-0 right-0 top-0 items-center justify-center">
+            <AppText weight={700} align="center" className="text-[16px] text-ink">
+              {t("titleCart")}
+            </AppText>
+          </View>
         </View>
         <Pressable onPress={retry} className="flex-1 items-center justify-center">
-          <AppText className="text-muted">{hasError ? t('retry') : t('loading')}</AppText>
+          <AppText className="text-muted">{hasError ? t("retry") : t("loading")}</AppText>
         </Pressable>
       </Screen>
     );
@@ -51,43 +52,47 @@ export default function CartScreen() {
 
   if (lines.length === 0) {
     return (
-      <Screen edges={['top', 'bottom']}>
-        <View className="border-b border-line bg-paper px-4 py-3">
-          <AppText weight={700} className="text-[16px] text-ink">
-            {t('titleCart')}
-          </AppText>
+      <Screen edges={["top", "bottom"]}>
+        <View className="relative border-b border-line bg-paper px-4 py-3">
+          <View className="absolute bottom-0 left-0 right-0 top-0 items-center justify-center">
+            <AppText weight={700} align="center" className="text-[16px] text-ink">
+              {t("titleCart")}
+            </AppText>
+          </View>
         </View>
         <EmptyState
           icon="bag"
-          title={t('cartEmptyTitle')}
-          text={t('cartEmptyText')}
-          actionLabel={t('startShopping')}
-          onAction={() => router.push('/(tabs)')}
+          title={t("cartEmptyTitle")}
+          text={t("cartEmptyText")}
+          actionLabel={t("startShopping")}
+          onAction={() => router.push("/(tabs)")}
         />
       </Screen>
     );
   }
 
   const handleCheckout = () => {
-    if (isAuthenticated) router.push('/checkout');
+    if (isAuthenticated) router.push("/checkout");
     else setAuthPrompt(true);
   };
 
   return (
-    <Screen edges={['top', 'bottom']}>
-      <View className="border-b border-line bg-paper px-4 py-3">
-        <AppText weight={700} className="text-[16px] text-ink">
-          {t('titleCart')}
-        </AppText>
+    <Screen edges={["top", "bottom"]}>
+      <View className="relative border-b border-line bg-paper px-4 py-3">
+        <View className="absolute bottom-0 left-0 right-0 top-0 items-center justify-center">
+          <AppText weight={700} align="center" className="text-[16px] text-ink">
+            {t("titleCart")}
+          </AppText>
+        </View>
       </View>
       <ScrollView contentContainerStyle={{ padding: 18, paddingBottom: 24 }}>
         <View className="mb-3 flex-row items-center gap-2 rounded-xl bg-[#f4eee9] p-3">
           <Icon name="truck" size={18} color="#6b2637" />
           <View className="flex-1">
             <AppText weight={700} className="text-[10px] text-ink">
-              {t('freeDelivery')}
+              {t("freeDelivery")}
             </AppText>
-            <AppText className="text-[9px] text-muted">{t('freeDeliveryHint')}</AppText>
+            <AppText className="text-[9px] text-muted">{t("freeDeliveryHint")}</AppText>
           </View>
         </View>
 
@@ -97,69 +102,83 @@ export default function CartScreen() {
           const unitPrice = lineUnitPrice(item, product);
           const variation = resolveVariation(product, item.colorId, item.sizeId);
           const image = item.image || product.images[0];
-          const colorLabel = item.colorName ?? product.colors.find((c) => c.id === item.colorId)?.name;
-          const colorName = colorLabel ? pick(colorLabel, lang) : t('noOptions');
+          const colorLabel =
+            item.colorName ?? product.colors.find((c) => c.id === item.colorId)?.name;
+          const colorName = colorLabel ? pick(colorLabel, lang) : t("noOptions");
           const sizeLabel =
             item.sizeLabel ??
             variation.size?.label ??
             product.sizes?.find((s) => s.id === item.sizeId)?.label;
           const maxQty = variation.stock ?? MAX_QUANTITY;
           return (
-          <View key={item.id} className="mb-3 flex-row gap-3 rounded-2xl border border-line bg-paper p-3">
-            <ProductImage uri={image} className="h-[80px] w-[68px] rounded-xl" />
-            <View className="flex-1">
-              <AppText weight={600} className="text-[11px] text-ink">
-                {pick(item.productName ?? product.name, lang)}
-              </AppText>
-              <AppText className="mt-0.5 text-[9px] text-muted">
-                {t('sizeLabel')}: {sizeLabel ?? t('noOptions')} · {t('colorLabel')}: {colorName}
-              </AppText>
-              <AppText weight={600} className="mt-1 text-[11px] text-wine">
-                {price(unitPrice)} × {item.quantity} = {price(lineTotal)}
-              </AppText>
-              <View className="mt-2 flex-row items-center justify-between">
-                <QuantityStepper
-                  value={item.quantity}
-                  onIncrease={() => {
-                    if (item.quantity >= maxQty) {
-                      // Respect the variation's stock: do not let it go up.
-                      showToast(t('soldOut'));
-                      return;
-                    }
-                    increment(item.id);
-                  }}
-                  onDecrease={() => decrement(item.id)}
-                  min={MIN_QUANTITY}
-                  max={maxQty}
-                />
+            <View
+              key={item.id}
+              className="mb-3 flex-row gap-3 rounded-2xl border border-line bg-paper p-3"
+            >
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => router.push(`/product/${product.id}`)}
+              >
+                <ProductImage uri={image} className="h-[80px] w-[68px] rounded-xl" />
+              </Pressable>
+              <View className="flex-1">
                 <Pressable
-                  onPress={() => {
-                    remove(item.id);
-                    showToast(t('itemRemovedFromCart'));
-                  }}
-                  className="h-[32px] w-[32px] items-center justify-center rounded-lg border border-line active:opacity-70"
+                  accessibilityRole="button"
+                  onPress={() => router.push(`/product/${product.id}`)}
                 >
-                  <Icon name="trash" size={16} color="#211e1c" />
+                  <AppText weight={600} className="text-[11px] text-ink">
+                    {pick(item.productName ?? product.name, lang)}
+                  </AppText>
                 </Pressable>
+                <AppText className="mt-0.5 text-[9px] text-muted">
+                  {t("sizeLabel")}: {sizeLabel ?? t("noOptions")} · {t("colorLabel")}: {colorName}
+                </AppText>
+                <AppText weight={600} className="mt-1 text-[11px] text-wine">
+                  {price(unitPrice)} × {item.quantity} = {price(lineTotal)}
+                </AppText>
+                <View className="mt-2 flex-row items-center justify-between">
+                  <QuantityStepper
+                    value={item.quantity}
+                    onIncrease={() => {
+                      if (item.quantity >= maxQty) {
+                        // Respect the variation's stock: do not let it go up.
+                        showToast(t("soldOut"));
+                        return;
+                      }
+                      increment(item.id);
+                    }}
+                    onDecrease={() => decrement(item.id)}
+                    min={MIN_QUANTITY}
+                    max={maxQty}
+                  />
+                  <Pressable
+                    onPress={() => {
+                      remove(item.id);
+                      showToast(t("itemRemovedFromCart"));
+                    }}
+                    className="h-[32px] w-[32px] items-center justify-center rounded-lg border border-line active:opacity-70"
+                  >
+                    <Icon name="trash" size={16} color="#211e1c" />
+                  </Pressable>
+                </View>
               </View>
             </View>
-          </View>
           );
         })}
 
         <View className="mt-2 rounded-2xl border border-line bg-paper p-4">
           <AppText weight={700} className="mb-2 text-[12px] text-ink">
-            {t('bagSummary')}
+            {t("bagSummary")}
           </AppText>
-          <SummaryRow label={t('subtotal')} value={price(subtotalSar)} />
-          <SummaryRow label={t('discounts')} value="—" />
-          <SummaryRow label={t('delivery')} value={t('calculatedLater')} />
+          <SummaryRow label={t("subtotal")} value={price(subtotalSar)} />
+          <SummaryRow label={t("discounts")} value="—" />
+          <SummaryRow label={t("delivery")} value={t("calculatedLater")} />
           <View className="my-2 h-px bg-line" />
-          <SummaryRow label={t('total')} value={price(subtotalSar)} strong />
+          <SummaryRow label={t("total")} value={price(subtotalSar)} strong />
         </View>
 
         <Button onPress={handleCheckout} className="mt-4" iconRight="arrow">
-          {t('continueToCheckout')}
+          {t("continueToCheckout")}
         </Button>
       </ScrollView>
 
@@ -168,11 +187,11 @@ export default function CartScreen() {
         onClose={() => setAuthPrompt(false)}
         onLogin={() => {
           setAuthPrompt(false);
-          router.push('/login');
+          router.push("/login");
         }}
         onRegister={() => {
           setAuthPrompt(false);
-          router.push('/register');
+          router.push("/register");
         }}
       />
     </Screen>

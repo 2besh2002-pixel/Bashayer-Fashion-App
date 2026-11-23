@@ -1,15 +1,15 @@
-import { Pressable, ScrollView, View } from 'react-native';
-import { useState } from 'react';
-import { useRouter } from 'expo-router';
+import { useRouter } from "expo-router";
+import { useState } from "react";
+import { Pressable, ScrollView, View } from "react-native";
 
-import { AppText } from '@/src/components/ui/AppText';
-import { Button } from '@/src/components/ui/Button';
-import { ConfirmDialog } from '@/src/components/ui/ConfirmDialog';
-import { Icon } from '@/src/components/ui/Icon';
-import { Screen } from '@/src/components/ui/Screen';
-import { useTranslation } from '@/src/hooks/useTranslation';
-import { useAuthStore } from '@/src/stores/authStore';
-import { useUiStore } from '@/src/stores/uiStore';
+import { AppText } from "@/src/components/ui/AppText";
+import { Button } from "@/src/components/ui/Button";
+import { ConfirmDialog } from "@/src/components/ui/ConfirmDialog";
+import { Icon } from "@/src/components/ui/Icon";
+import { Screen } from "@/src/components/ui/Screen";
+import { useTranslation } from "@/src/hooks/useTranslation";
+import { useAuthStore } from "@/src/stores/authStore";
+import { useUiStore } from "@/src/stores/uiStore";
 
 export default function AccountScreen() {
   const router = useRouter();
@@ -23,31 +23,33 @@ export default function AccountScreen() {
   const handleLogout = async () => {
     await logout();
     setLogoutVisible(false);
-    showToast(t('loggedOutToast'));
+    showToast(t("loggedOutToast"));
   };
 
   if (!isAuthenticated) {
     return (
-      <Screen edges={['top', 'bottom']}>
-        <View className="border-b border-line bg-paper px-4 py-3">
-          <AppText weight={700} className="text-[16px] text-ink">
-            {t('titleProfile')}
-          </AppText>
+      <Screen edges={["top", "bottom"]}>
+        <View className="relative border-b border-line bg-paper px-4 py-3">
+          <View className="absolute bottom-0 left-0 right-0 top-0 items-center justify-center">
+            <AppText weight={700} align="center" className="text-[16px] text-ink">
+              {t("titleProfile")}
+            </AppText>
+          </View>
         </View>
         <View className="flex-1 items-center justify-center px-8">
           <View className="mb-4 h-[72px] w-[72px] items-center justify-center rounded-full bg-[#f4eee9]">
             <Icon name="user" size={32} color="#6b2637" />
           </View>
           <AppText weight={700} className="text-center text-[18px] text-ink">
-            {t('welcomeToBrand')}
+            {t("welcomeToBrand")}
           </AppText>
           <AppText className="mt-2 text-center text-[11px] text-muted">
-            {t('guestProfileText')}
+            {t("guestProfileText")}
           </AppText>
           <View className="mt-6 w-full gap-2">
-            <Button onPress={() => router.push('/login')}>{t('loginLong')}</Button>
-            <Button variant="secondary" onPress={() => router.push('/register')}>
-              {t('createAccount')}
+            <Button onPress={() => router.push("/login")}>{t("loginLong")}</Button>
+            <Button variant="secondary" onPress={() => router.push("/register")}>
+              {t("createAccount")}
             </Button>
           </View>
         </View>
@@ -56,31 +58,33 @@ export default function AccountScreen() {
   }
 
   const links = [
-    { icon: 'box' as const, label: t('myOrders'), to: '/orders' },
-    { icon: 'heart' as const, label: t('myWishlist'), to: '/(tabs)/wishlist' },
-    { icon: 'pin' as const, label: t('myAddresses'), to: '/addresses' },
-    { icon: 'settings' as const, label: t('settings'), to: '/settings' },
-    { icon: 'help' as const, label: t('supportFaq'), to: '/support' },
+    { icon: "box" as const, label: t("myOrders"), to: "/orders" as const },
+    { icon: "heart" as const, label: t("myWishlist"), to: "/(tabs)/wishlist" as const },
+    { icon: "pin" as const, label: t("myAddresses"), to: "/addresses" as const },
+    { icon: "settings" as const, label: t("settings"), to: "/settings" as const },
+    { icon: "help" as const, label: t("supportFaq"), to: "/support" as const },
   ];
 
   return (
-    <Screen edges={['top', 'bottom']}>
-      <View className="border-b border-line bg-paper px-4 py-3">
-        <AppText weight={700} className="text-[16px] text-ink">
-          {t('titleProfile')}
-        </AppText>
+    <Screen edges={["top", "bottom"]}>
+      <View className="relative border-b border-line bg-paper px-4 py-3">
+        <View className="absolute bottom-0 left-0 right-0 top-0 items-center justify-center">
+          <AppText weight={700} align="center" className="text-[16px] text-ink">
+            {t("titleProfile")}
+          </AppText>
+        </View>
       </View>
       <ScrollView contentContainerStyle={{ padding: 18, paddingBottom: 24 }}>
         <View className="mb-4 flex-row items-center gap-3 rounded-2xl border border-line bg-paper p-4">
           <View className="h-[46px] w-[46px] items-center justify-center rounded-full bg-wine">
             <AppText weight={700} className="text-[18px] text-white">
-              {user?.name?.[0] ?? 'ن'}
+              {user?.name?.[0] ?? "ن"}
             </AppText>
           </View>
           <View className="flex-1">
-            <AppText className="text-[9px] text-muted">{t('welcomeBack')}</AppText>
+            <AppText className="text-[9px] text-muted">{t("welcomeBack")}</AppText>
             <AppText weight={700} className="text-[13px] text-ink">
-              {user?.name ?? t('demoUser')}
+              {user?.name ?? t("demoUser")}
             </AppText>
             <AppText className="text-[9px] text-muted">{user?.email}</AppText>
           </View>
@@ -89,7 +93,7 @@ export default function AccountScreen() {
         {links.map((l) => (
           <Pressable
             key={l.label}
-            onPress={() => router.push(l.to as any)}
+            onPress={() => router.push(l.to)}
             className="mb-2 flex-row items-center justify-between rounded-xl border border-line bg-paper px-4 py-3.5 active:opacity-70"
           >
             <View className="flex-row items-center gap-3">
@@ -108,17 +112,17 @@ export default function AccountScreen() {
         >
           <Icon name="logout" size={18} color="#6b2637" />
           <AppText weight={700} className="text-[11px] text-wine">
-            {t('logoutLong')}
+            {t("logoutLong")}
           </AppText>
         </Pressable>
       </ScrollView>
 
       <ConfirmDialog
         visible={logoutVisible}
-        title={t('logoutTitle')}
-        text={t('logoutText')}
-        confirmLabel={t('yesLogout')}
-        cancelLabel={t('staySignedIn')}
+        title={t("logoutTitle")}
+        text={t("logoutText")}
+        confirmLabel={t("yesLogout")}
+        cancelLabel={t("staySignedIn")}
         onConfirm={handleLogout}
         onClose={() => setLogoutVisible(false)}
       />

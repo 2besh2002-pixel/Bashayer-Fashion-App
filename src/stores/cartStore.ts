@@ -171,6 +171,7 @@ export const useCartStore = create<CartState>()(
           if (existing) {
             // The same variation is already in the bag: merge the quantities
             // (the moved line's quantity is not lost) and refresh the data.
+            updated = true;
             const merged: CartItem = {
               ...existing,
               ...next,
@@ -214,9 +215,16 @@ export const useCartStore = create<CartState>()(
       version: 2,
       /** Fill in the variation snapshot fields for carts persisted before
        * the variation system (v1 items lack unitPrice/sku/image/etc.). */
-      migrate: (state: any) => {
-        if (!state || !Array.isArray(state.items)) return state;
-        const items = state.items.map((item: CartItem) => {
+      migrate: (persistedState: unknown) => {
+        if (
+          !persistedState ||
+          typeof persistedState !== "object" ||
+          !("items" in persistedState) ||
+          !Array.isArray(persistedState.items)
+        ) {
+          return persistedState as CartState;
+        }
+        const items = persistedState.items.map((item: CartItem) => {
           const product = getProductById(item.productId);
           if (!product) return item;
           const resolved = resolveVariation(product, item.colorId, item.sizeId);
@@ -235,7 +243,7 @@ export const useCartStore = create<CartState>()(
             isOneSize: item.isOneSize ?? (resolved.isOneSize || undefined),
           };
         });
-        return { ...state, items };
+        return { ...persistedState, items } as CartState;
       },
     },
   ),

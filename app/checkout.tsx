@@ -21,7 +21,7 @@ import { useSettingsStore } from '@/src/stores/settingsStore';
 import { useAuthStore } from '@/src/stores/authStore';
 import { repositories } from '@/src/repositories';
 import { demoOrderNumber, pick } from '@/src/utils/format';
-import type { Address } from '@/src/types';
+import type { Address, Order } from '@/src/types';
 
 export default function CheckoutScreen() {
   const router = useRouter();
@@ -79,7 +79,7 @@ export default function CheckoutScreen() {
       return;
     }
     setSubmitting(true);
-    const order = {
+    const order: Order = {
       id: demoOrderNumber(),
       createdAt: new Date().toISOString(),
       status: 'processing' as const,
@@ -108,7 +108,7 @@ export default function CheckoutScreen() {
       currencyAtCheckout: currency,
       isDemo: true,
     };
-    await repositories.orders.create(order as any);
+    await repositories.orders.create(order);
     clearCart();
     setSubmitting(false);
     router.replace(`/confirmation?orderId=${encodeURIComponent(order.id)}`);

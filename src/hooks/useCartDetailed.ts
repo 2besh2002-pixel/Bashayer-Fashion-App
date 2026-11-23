@@ -35,8 +35,9 @@ export function useCartDetailed(products: Product[]): CartDetailed {
   const items = useCartStore((s) => s.items);
   return useMemo(() => {
     const lines: CartLine[] = [];
+    const productById = new Map(products.map((product) => [product.id, product]));
     for (const item of items) {
-      const product = products.find((candidate) => candidate.id === item.productId);
+      const product = productById.get(item.productId);
       if (!product) continue;
       const unitPrice = lineUnitPrice(item, product);
       lines.push({

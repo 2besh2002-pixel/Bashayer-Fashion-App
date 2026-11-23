@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 
 import { AppText } from '@/src/components/ui/AppText';
 import { CurrencySheet } from '@/src/components/commerce/CurrencySheet';
-import { Icon } from '@/src/components/ui/Icon';
+import { Icon, type IconName } from '@/src/components/ui/Icon';
 import { PageHeader } from '@/src/components/ui/PageHeader';
 import { Screen } from '@/src/components/ui/Screen';
 import { useTranslation } from '@/src/hooks/useTranslation';
@@ -34,7 +34,10 @@ export default function SettingsScreen() {
     { icon: 'edit' as const, label: t('contactSupport'), onPress: () => router.push('/support') },
   ];
 
-  const renderSection = (title: string, items: { icon: any; label: string; value?: string; onPress: () => void }[]) => (
+  const renderSection = (
+    title: string,
+    items: { icon: IconName; label: string; value?: string; onPress: () => void }[],
+  ) => (
     <View className="mb-4">
       {title ? (
         <AppText weight={700} className="mb-2 px-[18px] text-[11px] text-muted">

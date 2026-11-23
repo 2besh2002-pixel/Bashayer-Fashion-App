@@ -27,7 +27,7 @@ export function PageHeader({ title, showBack, right }: PageHeaderProps) {
       <View className="w-[42px] items-start">
         {showBack ? <BackButton /> : null}
       </View>
-      <View className="absolute left-0 right-0 top-0 h-[61px] items-center">
+      <View className="absolute left-0 right-0 top-0 h-[61px] items-center justify-center">
         <AppText weight={700} numberOfLines={1} className="text-center text-[16px] text-ink">
           {title}
         </AppText>
