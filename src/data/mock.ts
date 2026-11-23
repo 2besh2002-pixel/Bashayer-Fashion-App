@@ -1,5 +1,9 @@
 import type { Address, Notification, Order } from "@/src/types";
 import { PRODUCTS } from "@/src/data/products";
+import {
+  computeVariationPrice,
+  resolveVariationImages,
+} from "@/src/utils/productVariants";
 
 /** Demo guest cart is empty; authenticated demo starts from these seeds. */
 export const SEED_ADDRESSES: Address[] = [
@@ -26,26 +30,30 @@ export const SEED_ORDERS: Order[] = [
       {
         productId: 1,
         name: PRODUCTS[0].name,
-        image: PRODUCTS[0].images[0],
+        image: resolveVariationImages(PRODUCTS[0], PRODUCTS[0].colors[0].id)[0] ?? "",
         colorName: PRODUCTS[0].colors[0].name,
         sizeLabel: "M",
         quantity: 1,
-        unitPrice: PRODUCTS[0].price,
+        unitPrice: computeVariationPrice(PRODUCTS[0], PRODUCTS[0].colors[0].id, null),
       },
       {
         productId: 2,
         name: PRODUCTS[1].name,
-        image: PRODUCTS[1].images[0],
+        image: PRODUCTS[1].images[0] ?? "",
         colorName: PRODUCTS[1].colors[0].name,
         sizeLabel: "O/S",
         quantity: 1,
-        unitPrice: PRODUCTS[1].price,
+        unitPrice: computeVariationPrice(PRODUCTS[1], PRODUCTS[1].colors[0].id, null),
       },
     ],
-    subtotal: PRODUCTS[0].price + PRODUCTS[1].price,
+    subtotal:
+      computeVariationPrice(PRODUCTS[0], PRODUCTS[0].colors[0].id, null) +
+      computeVariationPrice(PRODUCTS[1], PRODUCTS[1].colors[0].id, null),
     deliveryFee: 0,
     discount: 0,
-    total: PRODUCTS[0].price + PRODUCTS[1].price,
+    total:
+      computeVariationPrice(PRODUCTS[0], PRODUCTS[0].colors[0].id, null) +
+      computeVariationPrice(PRODUCTS[1], PRODUCTS[1].colors[0].id, null),
     currencyAtCheckout: "SAR",
     isDemo: true,
   },

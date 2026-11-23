@@ -1,18 +1,21 @@
-import { Image, Pressable, ScrollView, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter } from "expo-router";
+import { Pressable, ScrollView, View } from "react-native";
 
-import { AppText } from '@/src/components/ui/AppText';
-import { Button } from '@/src/components/ui/Button';
-import { EmptyState } from '@/src/components/commerce/EmptyState';
-import { Icon } from '@/src/components/ui/Icon';
-import { Screen } from '@/src/components/ui/Screen';
-import { useTranslation } from '@/src/hooks/useTranslation';
-import { useCartStore } from '@/src/stores/cartStore';
-import { usePrice } from '@/src/hooks/usePrice';
-import { useUiStore } from '@/src/stores/uiStore';
-import { useWishlistStore } from '@/src/stores/wishlistStore';
-import { getProductById } from '@/src/data/products';
-import { pick } from '@/src/utils/format';
+import { EmptyState } from "@/src/components/commerce/EmptyState";
+import { AppText } from "@/src/components/ui/AppText";
+import { Button } from "@/src/components/ui/Button";
+import { Icon } from "@/src/components/ui/Icon";
+import { Screen } from "@/src/components/ui/Screen";
+import { usePrice } from "@/src/hooks/usePrice";
+import { useCatalogProducts } from "@/src/hooks/useCatalogProducts";
+import { useTranslation } from "@/src/hooks/useTranslation";
+import { useCartStore } from "@/src/stores/cartStore";
+import { useUiStore } from "@/src/stores/uiStore";
+import { useWishlistStore } from "@/src/stores/wishlistStore";
+import { pick } from "@/src/utils/format";
+import { availableColorSizeCombos } from "@/src/utils/filterProducts";
+import type { Product } from "@/src/types";
+import { ProductImage } from "@/src/components/commerce/ProductImage";
 
 export default function WishlistScreen() {
   const router = useRouter();
@@ -22,59 +25,77 @@ export default function WishlistScreen() {
   const toggle = useWishlistStore((s) => s.toggle);
   const addItem = useCartStore((s) => s.addItem);
   const showToast = useUiStore((s) => s.showToast);
+  const { products, isLoading, hasError, retry } = useCatalogProducts();
 
-  const items = ids.map(getProductById).filter(Boolean) as any[];
+  const productById = new Map(products.map((product) => [product.id, product]));
+  const items = ids
+    .map((id) => productById.get(id))
+    .filter((product): product is Product => product != null);
+
+  if (items.length === 0 && (isLoading || hasError)) {
+    return (
+      <Screen edges={["top", "bottom"]}>
+        <View className="border-b border-line bg-paper px-4 py-3">
+          <AppText weight={700} className="text-[16px] text-ink">
+            {t("titleWishlist")}
+          </AppText>
+        </View>
+        <Pressable onPress={retry} className="flex-1 items-center justify-center">
+          <AppText className="text-muted">{hasError ? t("retry") : t("loading")}</AppText>
+        </Pressable>
+      </Screen>
+    );
+  }
 
   if (items.length === 0) {
     return (
-      <Screen edges={['top', 'bottom']}>
+      <Screen edges={["top", "bottom"]}>
         <View className="border-b border-line bg-paper px-4 py-3">
-          <AppText weight={700} className="text-[16px] text-ink">
-            {t('titleWishlist')}
+          <AppText weight={700} className="text-[16px] text-ink justify-center">
+            {t("titleWishlist")}
           </AppText>
         </View>
         <EmptyState
           icon="heart"
-          title={t('wishlistEmptyTitle')}
-          text={t('wishlistEmptyText')}
-          actionLabel={t('discoverNew')}
-          onAction={() => router.push('/(tabs)')}
+          title={t("wishlistEmptyTitle")}
+          text={t("wishlistEmptyText")}
+          actionLabel={t("discoverNew")}
+          onAction={() => router.push("/(tabs)")}
         />
       </Screen>
     );
   }
 
   return (
-    <Screen edges={['top', 'bottom']}>
+    <Screen edges={["top", "bottom"]}>
       <View className="border-b border-line bg-paper px-4 py-3">
         <AppText weight={700} className="text-[16px] text-ink">
-          {t('titleWishlist')}
+          {t("titleWishlist")}
         </AppText>
       </View>
       <ScrollView contentContainerStyle={{ padding: 18, gap: 12, paddingBottom: 24 }}>
         {items.map((p) => (
           <View key={p.id} className="flex-row gap-3 rounded-2xl border border-line bg-paper p-3">
             <Pressable onPress={() => router.push(`/product/${p.id}`)}>
-              <Image source={{ uri: p.images[0] }} className="h-[90px] w-[78px] rounded-xl" resizeMode="cover" />
+              <ProductImage uri={p.images[0]} className="h-[90px] w-[78px] rounded-xl" />
             </Pressable>
             <View className="flex-1">
               <AppText weight={600} className="text-[11px] text-ink">
                 {pick(p.name, lang)}
               </AppText>
-              <AppText className="mt-1 text-[10px] text-wine">
-                {price(p.price)}
-              </AppText>
+              <AppText className="mt-1 text-[10px] text-wine">{price(p.price)}</AppText>
               <View className="mt-2 flex-row gap-2">
                 <View className="flex-1">
                   <Button
                     onPress={() => {
-                      const color = p.colors.find((c: any) => c.available) ?? p.colors[0];
-                      const size = p.sizes.find((s: any) => s.available) ?? p.sizes[0];
-                      addItem(p, { colorId: color?.id ?? null, sizeId: size?.id ?? null });
-                      showToast(t('itemAddedToCart'));
+                      const choice = availableColorSizeCombos(p)[0];
+                      const added =
+                        choice != null &&
+                        addItem(p, { colorId: choice.colorId, sizeId: choice.sizeId });
+                      showToast(added ? t("itemAddedToCart") : t("itemUnavailable"));
                     }}
                   >
-                    {t('addToList')}
+                    {t("addToList")}
                   </Button>
                 </View>
                 <Pressable

@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { Image, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
 
 import { AppText } from "@/src/components/ui/AppText";
 import { Icon } from "@/src/components/ui/Icon";
@@ -9,6 +9,8 @@ import { useWishlistStore } from "@/src/stores/wishlistStore";
 import { useUiStore } from "@/src/stores/uiStore";
 import type { Product } from "@/src/types";
 import { pick } from "@/src/utils/format";
+import { ProductImage } from "@/src/components/commerce/ProductImage";
+import { productPriceRange } from "@/src/utils/filterProducts";
 
 interface ProductCardProps {
   product: Product;
@@ -41,11 +43,7 @@ function ProductCardBase({ product, onPress }: ProductCardProps) {
           className="active:opacity-90"
         >
           <View className="h-[248px] overflow-hidden rounded-t-[14px] rounded-b-[4px] bg-[#eee9e2]">
-            <Image
-              source={{ uri: product.images[0] }}
-              className="h-full w-full"
-              resizeMode="cover"
-            />
+            <ProductImage uri={product.images[0]} className="h-full w-full" />
             {product.badge ? (
               <View
                 className="absolute top-[10px] rounded-[5px] bg-paper/90 px-[7px] py-[5px]"
@@ -90,7 +88,7 @@ function ProductCardBase({ product, onPress }: ProductCardProps) {
         </View>
         <View className="flex-row items-center gap-[7px]">
           <AppText weight={600} className="text-[11px] text-wine">
-            {price(product.price)}
+            {price(productPriceRange(product).min)}
           </AppText>
           {product.compareAt ? (
             <AppText className="text-[9px] text-[#9f9892] line-through">

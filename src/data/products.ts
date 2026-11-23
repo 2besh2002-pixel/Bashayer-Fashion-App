@@ -1,63 +1,25 @@
-import type { Category, CategoryGroup, Product } from "@/src/types";
+/**
+ * Catalogue data.
+ *
+ * The catalog is data-driven: every product carries its main category
+ * (`categoryId`), subcategory (`subcategoryId`) and full variation
+ * configuration (colors with dedicated images + sizes, optional
+ * color/size/combination-specific prices, stocks and SKUs).
+ *
+ * Mapped image assets (verified by pixel sampling) stay in
+ * `assets/images/`; `src/data/images.ts` re-exports them.
+ */
 
-const img = (id: string, w = 700) =>
-  `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${w}&q=85`;
+import type { Product, SizeOption } from "@/src/types";
+import {
+  BURGUNDY_PLATEAU_DRESS,
+  BURGENDY_LINEN_DRESS,
+  GREY_DRESS,
+  LINEN_GRAY_DRESS,
+} from "@/src/data/images";
 
-export const CATEGORIES: Category[] = [
-  { id: "dresses", name: { ar: "فساتين", en: "Dresses" }, image: img("photo-1496747611176-843222e1e57c", 400) },
-  { id: "men", name: { ar: "رجالي", en: "Men" }, image: img("photo-1617137968427-85924c800a22", 400) },
-  { id: "shoes", name: { ar: "أحذية", en: "Shoes" }, image: img("photo-1543163521-1bf539c55dd2", 400) },
-  { id: "bags", name: { ar: "حقائب", en: "Bags" }, image: img("photo-1584917865442-de89df76afd3", 400) },
-  { id: "accessories", name: { ar: "إكسسوارات", en: "Accessories" }, image: img("photo-1523779917675-b6ed3a42a561", 400) },
-];
+// ---- Size sets (shared per product) ----
 
-export const CATEGORY_GROUPS: CategoryGroup[] = [
-  {
-    id: "women",
-    name: { ar: "نسائي", en: "Women" },
-    image: CATEGORIES[0].image,
-    items: [
-      { ar: "فساتين", en: "Dresses" },
-      { ar: "توبات وقمصان", en: "Tops & shirts" },
-      { ar: "عبايات ومعاطف", en: "Abayas & coats" },
-      { ar: "بناطيل وتنانير", en: "Trousers & skirts" },
-    ],
-  },
-  {
-    id: "men",
-    name: { ar: "رجالي", en: "Men" },
-    image: CATEGORIES[1].image,
-    items: [
-      { ar: "قمصان", en: "Shirts" },
-      { ar: "تيشيرتات", en: "T-shirts" },
-      { ar: "بناطيل", en: "Trousers" },
-      { ar: "جاكيتات", en: "Jackets" },
-    ],
-  },
-  {
-    id: "kids",
-    name: { ar: "أطفال", en: "Kids" },
-    image: CATEGORIES[4].image,
-    items: [
-      { ar: "أزياء أطفال", en: "Kids’ fashion" },
-      { ar: "أحذية أطفال", en: "Kids’ shoes" },
-      { ar: "إكسسوارات أطفال", en: "Kids’ accessories" },
-    ],
-  },
-  {
-    id: "shoes-bags",
-    name: { ar: "الأحذية والحقائب", en: "Shoes & bags" },
-    image: CATEGORIES[3].image,
-    items: [
-      { ar: "أحذية نسائية", en: "Women’s shoes" },
-      { ar: "أحذية رجالية", en: "Men’s shoes" },
-      { ar: "حقائب يد", en: "Handbags" },
-      { ar: "حقائب ظهر", en: "Backpacks" },
-    ],
-  },
-];
-
-/** Static size sets reused across products. */
 const CLOTHING_SIZES = (soldOut: string[] = []) =>
   ["XS", "S", "M", "L", "XL", "XXL"].map((label) => ({
     id: label.toLowerCase(),
@@ -65,25 +27,42 @@ const CLOTHING_SIZES = (soldOut: string[] = []) =>
     available: !soldOut.includes(label),
   }));
 
-const SHOE_SIZES = (soldOut: number[] = []) =>
-  [36, 37, 38, 39, 40, 41].map((n) => ({
-    id: String(n),
-    label: String(n),
-    available: !soldOut.includes(n),
-  }));
+const PRODUCT1_SIZES: SizeOption[] = ["XS", "S", "M", "L", "XL", "XXL"].map((label) => ({
+  id: label.toLowerCase(),
+  label,
+  available: label !== "XS", // XS out of stock on Product 1
+}));
+const PRODUCT3_SIZES: SizeOption[] = CLOTHING_SIZES(["XS", "XXL"]);
+const PRODUCT5_SIZES: SizeOption[] = CLOTHING_SIZES(["XXL"]);
+const PRODUCT5_IVORY_SIZES: SizeOption[] = ["S", "M", "L"].map((label) => ({
+  id: label.toLowerCase(),
+  label,
+  available: true,
+}));
+const PRODUCT8_SIZES: SizeOption[] = CLOTHING_SIZES(["XS"]);
+const PRODUCT10_SIZES: SizeOption[] = CLOTHING_SIZES(["XXL"]);
+const PRODUCT11_SIZES: SizeOption[] = CLOTHING_SIZES(["XS", "XXL"]);
+const ONE_SIZE: SizeOption[] = [{ id: "os", label: "O/S", available: true }];
+const SHOE_SIZES_36: SizeOption[] = [{ id: "36", label: "36", available: true }];
+const SHOE_SIZES_41: SizeOption[] = [{ id: "41", label: "41", available: true }];
 
-const ONE_SIZE = [{ id: "os", label: "O/S", available: true }];
+// ---- Color swatches ----
 
 const BURGUNDY = { id: "burgundy", name: { ar: "عنابي", en: "Burgundy" }, hex: "#632c36", available: true };
 const IVORY = { id: "ivory", name: { ar: "عاجي", en: "Ivory" }, hex: "#e7dfd0", available: true };
 const CHARCOAL = { id: "charcoal", name: { ar: "فحمي", en: "Charcoal" }, hex: "#1f2930", available: false };
 const TAN = { id: "tan", name: { ar: "بيج", en: "Tan" }, hex: "#c8a97e", available: true };
 const BLACK = { id: "black", name: { ar: "أسود", en: "Black" }, hex: "#1c1c1c", available: true };
-
 /**
- * Local mock catalogue. Prices are in SAR (base currency).
- * Content is illustrative prototype data, NOT live store inventory.
+ * New "Gray" color on Product 1. Added because the product's main image is
+ * the gray dress (verified: the image shows only gray/white tones, no red or
+ * maroon — see report). Product 1 previously had no gray option; the color
+ * carries the verified image and falls back to the base price / unknown stock.
  */
+const GRAY = { id: "gray", name: { ar: "رمادي", en: "Gray" }, hex: "#b2b4b0", available: true };
+
+// ---- Products (migrated to the variation-aware structure) ----
+
 export const PRODUCTS: Product[] = [
   {
     id: 1,
@@ -93,15 +72,40 @@ export const PRODUCTS: Product[] = [
     compareAt: 520,
     rating: 4.8,
     reviewCount: 164,
-    images: [img("photo-1595777457583-95e059d581b8")],
-    categoryId: "dresses",
+    images: [GREY_DRESS, BURGUNDY_PLATEAU_DRESS],
+    categoryId: "women",
+    subcategoryId: "dresses",
     badge: { ar: "حصري", en: "Exclusive" },
     description: {
       ar: "فستان متوسط الطول بطيّات ناعمة وقصّة انسيابية، مناسب لإطلالات الموسم.",
       en: "A midi dress with soft pleats and a fluid silhouette, made for the season.",
     },
-    colors: [BURGUNDY, IVORY, CHARCOAL],
-    sizes: CLOTHING_SIZES(["XS"]),
+    colors: [
+      { ...BURGUNDY, images: [BURGUNDY_PLATEAU_DRESS], sizes: PRODUCT1_SIZES },
+      { ...IVORY, price: 449, images: [], sizes: PRODUCT1_SIZES },
+      { ...CHARCOAL, images: [], sizes: PRODUCT1_SIZES },
+      { ...GRAY, price: 399, images: [GREY_DRESS], sizes: PRODUCT1_SIZES },
+    ],
+    variations: [
+      {
+        id: "dress-1-burgundy-m",
+        colorId: "burgundy",
+        sizeId: "m",
+        sku: "NSJ-DRESS1-BURG-M",
+        price: 439,
+        compareAt: 520,
+        stock: 3,
+        available: true,
+      },
+      {
+        id: "dress-1-burgundy-l",
+        colorId: "burgundy",
+        sizeId: "l",
+        sku: "NSJ-DRESS1-BURG-L",
+        stock: 0,
+        available: false,
+      },
+    ],
     measurements: [
       { size: "S", bust: 84, waist: 68, hips: 92, length: 136 },
       { size: "M", bust: 89, waist: 73, hips: 97, length: 137 },
@@ -120,15 +124,36 @@ export const PRODUCTS: Product[] = [
     price: 315,
     rating: 4.7,
     reviewCount: 92,
-    images: [img("photo-1584917865442-de89df76afd3")],
-    categoryId: "bags",
+    images: [
+      "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=700&q=85",
+    ],
+    categoryId: "women",
+    subcategoryId: "bags",
     badge: { ar: "جديد", en: "New" },
     description: {
       ar: "حقيبة كتف جلدية بمساحة عملية وتفاصيل معدنية هادئة.",
       en: "A leather shoulder bag with practical space and understated hardware.",
     },
-    colors: [TAN, BLACK],
-    sizes: ONE_SIZE,
+    colors: [
+      { ...TAN, price: 315, stock: 4, images: [], sizes: [] },
+      { ...BLACK, price: 335, stock: 2, images: [], sizes: [] },
+    ],
+    variations: [
+      {
+        id: "bag-2-tan",
+        colorId: "tan",
+        sku: "NSJ-BAG2-TAN",
+        stock: 4,
+        available: true,
+      },
+      {
+        id: "bag-2-black",
+        colorId: "black",
+        sku: "NSJ-BAG2-BLK",
+        stock: 2,
+        available: true,
+      },
+    ],
   },
   {
     id: 3,
@@ -138,15 +163,20 @@ export const PRODUCTS: Product[] = [
     compareAt: 820,
     rating: 4.9,
     reviewCount: 211,
-    images: [img("photo-1539533113208-f6df8cc8b543")],
-    categoryId: "dresses",
+    images: [
+      "https://images.unsplash.com/photo-1539533113208-f6df8cc8b543?auto=format&fit=crop&w=700&q=85",
+    ],
+    categoryId: "women",
+    subcategoryId: "jackets",
     badge: { ar: "الأكثر مبيعاً", en: "Best seller" },
     description: {
       ar: "معطف صوف بقصّة مستقيمة ولمسة نهائية أنيقة.",
       en: "A wool coat with a straight cut and a refined finish.",
     },
-    colors: [IVORY, CHARCOAL],
-    sizes: CLOTHING_SIZES(["XS", "XXL"]),
+    colors: [
+      { ...IVORY, images: [], sizes: PRODUCT3_SIZES },
+      { ...CHARCOAL, images: [], sizes: PRODUCT3_SIZES },
+    ],
   },
   {
     id: 4,
@@ -155,15 +185,20 @@ export const PRODUCTS: Product[] = [
     price: 380,
     rating: 4.6,
     reviewCount: 58,
-    images: [img("photo-1543163521-1bf539c55dd2")],
-    categoryId: "shoes",
+    images: [
+      "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=700&q=85",
+    ],
+    categoryId: "women",
+    subcategoryId: "shoes",
     badge: { ar: "وصل حديثاً", en: "Just in" },
     description: {
       ar: "حذاء بكعب منحوت وخطوط نظيفة لإطلالة مسائية.",
       en: "A sculpted heel with clean lines for evening looks.",
     },
-    colors: [BURGUNDY, BLACK],
-    sizes: SHOE_SIZES([36]),
+    colors: [
+      { ...BURGUNDY, images: [], sizes: SHOE_SIZES_36 },
+      { ...BLACK, images: [], sizes: SHOE_SIZES_36 },
+    ],
   },
   {
     id: 5,
@@ -172,18 +207,18 @@ export const PRODUCTS: Product[] = [
     price: 350,
     rating: 4.5,
     reviewCount: 74,
-    images: [img("photo-1515372039744-b8f02a3ae446")],
-    categoryId: "dresses",
+    images: [LINEN_GRAY_DRESS, BURGENDY_LINEN_DRESS],
+    categoryId: "women",
+    subcategoryId: "dresses",
     description: {
       ar: "فستان كتان ميدي خفيف مناسب للنهار.",
       en: "A lightweight linen midi dress for daytime.",
     },
-    colors: [IVORY, BURGUNDY],
-    sizes: CLOTHING_SIZES(["XXL"]),
-    measurements: [
-      { size: "S", bust: 86, waist: 70, hips: 94, length: 120 },
-      { size: "M", bust: 91, waist: 75, hips: 99, length: 121 },
-      { size: "L", bust: 97, waist: 81, hips: 105, length: 122 },
+    colors: [
+      // The light linen dress in the image is closest to Ivory — best-effort
+      // mapping of an existing light dress photo to an existing color.
+      { ...IVORY, price: 350, images: [LINEN_GRAY_DRESS], sizes: PRODUCT5_IVORY_SIZES },
+      { ...BURGUNDY, price: 375, images: [BURGENDY_LINEN_DRESS], sizes: PRODUCT5_SIZES },
     ],
   },
   {
@@ -193,15 +228,20 @@ export const PRODUCTS: Product[] = [
     price: 180,
     rating: 4.4,
     reviewCount: 33,
-    images: [img("photo-1601924994987-69e26d50dc26")],
-    categoryId: "accessories",
+    images: [
+      "https://images.unsplash.com/photo-1601924994987-69e26d50dc26?auto=format&fit=crop&w=700&q=85",
+    ],
+    categoryId: "women",
+    subcategoryId: "accessories",
     badge: { ar: "جديد", en: "New" },
     description: {
       ar: "وشاح حريري بنقشة هادئة يضيف لمسة لونية.",
       en: "A silk scarf in a subtle print that adds a pop of colour.",
     },
-    colors: [BURGUNDY, IVORY],
-    sizes: ONE_SIZE,
+    colors: [
+      { ...BURGUNDY, images: [], sizes: ONE_SIZE },
+      { ...IVORY, images: [], sizes: ONE_SIZE },
+    ],
   },
   {
     id: 7,
@@ -210,14 +250,19 @@ export const PRODUCTS: Product[] = [
     price: 520,
     rating: 4.8,
     reviewCount: 121,
-    images: [img("photo-1590874103328-eac38a683ce7")],
-    categoryId: "bags",
+    images: [
+      "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&w=700&q=85",
+    ],
+    categoryId: "women",
+    subcategoryId: "bags",
     description: {
       ar: "حقيبة توت جلدية واسعة تناسب الاستخدام اليومي.",
       en: "A roomy leather tote for everyday use.",
     },
-    colors: [TAN, BLACK],
-    sizes: ONE_SIZE,
+    colors: [
+      { ...TAN, images: [], sizes: ONE_SIZE },
+      { ...BLACK, images: [], sizes: ONE_SIZE },
+    ],
   },
   {
     id: 8,
@@ -226,14 +271,19 @@ export const PRODUCTS: Product[] = [
     price: 240,
     rating: 4.3,
     reviewCount: 47,
-    images: [img("photo-1596755094514-f87e34085b2c")],
+    images: [
+      "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=700&q=85",
+    ],
     categoryId: "men",
+    subcategoryId: "men-shirts",
     description: {
       ar: "قميص قطني بقصّة كلاسيكية مريحة.",
       en: "A comfortable cotton shirt with a classic cut.",
     },
-    colors: [IVORY, CHARCOAL],
-    sizes: CLOTHING_SIZES(["XS"]),
+    colors: [
+      { ...IVORY, images: [], sizes: PRODUCT8_SIZES },
+      { ...CHARCOAL, images: [], sizes: PRODUCT8_SIZES },
+    ],
   },
   {
     id: 9,
@@ -242,14 +292,19 @@ export const PRODUCTS: Product[] = [
     price: 410,
     rating: 4.5,
     reviewCount: 66,
-    images: [img("photo-1533867617858-e7b97e060509")],
-    categoryId: "shoes",
+    images: [
+      "https://images.unsplash.com/photo-1533867617858-e7b97e060509?auto=format&fit=crop&w=700&q=85",
+    ],
+    categoryId: "men",
+    subcategoryId: "men-shoes",
     description: {
       ar: "حذاء لوفر من الشاموا بتفاصيل مريحة.",
       en: "Comfortable suede loafers with refined detailing.",
     },
-    colors: [TAN, BLACK],
-    sizes: SHOE_SIZES([41]),
+    colors: [
+      { ...TAN, images: [], sizes: SHOE_SIZES_41 },
+      { ...BLACK, images: [], sizes: SHOE_SIZES_41 },
+    ],
   },
   {
     id: 10,
@@ -259,15 +314,21 @@ export const PRODUCTS: Product[] = [
     compareAt: 360,
     rating: 4.6,
     reviewCount: 88,
-    images: [img("photo-1434389677669-e08b4cac3105")],
-    categoryId: "dresses",
+    images: [
+      "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?auto=format&fit=crop&w=700&q=85",
+    ],
+    categoryId: "women",
+    subcategoryId: "tops",
     badge: { ar: "الأكثر مبيعاً", en: "Best seller" },
     description: {
       ar: "كارديغان محبوك ناعم لطبقات الموسم.",
       en: "A soft knitted cardigan for seasonal layering.",
     },
-    colors: [IVORY, BURGUNDY, CHARCOAL],
-    sizes: CLOTHING_SIZES(["XXL"]),
+    colors: [
+      { ...IVORY, images: [], sizes: PRODUCT10_SIZES },
+      { ...BURGUNDY, images: [], sizes: PRODUCT10_SIZES },
+      { ...CHARCOAL, images: [], sizes: PRODUCT10_SIZES },
+    ],
   },
   {
     id: 11,
@@ -276,15 +337,20 @@ export const PRODUCTS: Product[] = [
     price: 149,
     rating: 4.6,
     reviewCount: 38,
-    images: [img("photo-1519238263530-99bdd11df2ea")],
+    images: [
+      "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?auto=format&fit=crop&w=700&q=85",
+    ],
     categoryId: "kids",
+    subcategoryId: "kids-boys",
     badge: { ar: "جديد", en: "New" },
     description: {
       ar: "طقم قطني ناعم للأطفال بقصة مريحة مناسبة للاستخدام اليومي.",
       en: "A soft cotton set for kids with a comfortable everyday fit.",
     },
-    colors: [IVORY, BLACK],
-    sizes: CLOTHING_SIZES(["XS", "XXL"]),
+    colors: [
+      { ...IVORY, images: [], sizes: PRODUCT11_SIZES },
+      { ...BLACK, images: [], sizes: PRODUCT11_SIZES },
+    ],
   },
   {
     id: 12,
@@ -293,58 +359,54 @@ export const PRODUCTS: Product[] = [
     price: 199,
     rating: 4.5,
     reviewCount: 52,
-    images: [img("photo-1544549147-1dc8901b6feb")],
+    images: [
+      "https://images.unsplash.com/photo-1544549147-1dc8901b6feb?auto=format&fit=crop&w=700&q=85",
+    ],
     categoryId: "kids",
+    subcategoryId: "kids-shoes",
     description: {
       ar: "حذاء رياضي خفيف للأطفال بنعل مريح وخطوط عملية.",
       en: "Lightweight sneakers for kids with a comfy sole and practical lines.",
     },
-    colors: [BLACK, TAN],
-    sizes: SHOE_SIZES([41]),
+    colors: [
+      { ...BLACK, images: [], sizes: SHOE_SIZES_41 },
+      { ...TAN, images: [], sizes: SHOE_SIZES_41 },
+    ],
+  },
+  {
+    id: 13,
+    slug: "everyday-cotton-trousers",
+    name: { ar: "بنطال قطني يومي · نموذج تجريبي", en: "Everyday Cotton Trousers · Sample" },
+    price: 220,
+    rating: 4.2,
+    reviewCount: 0,
+    images: [],
+    categoryId: "women",
+    subcategoryId: "pants",
+    description: {
+      ar: "بيانات تجريبية لمنتج بمقاسات دون خيارات ألوان.",
+      en: "Sample data for a size-only product with no color options.",
+    },
+    colors: [],
+    sizes: CLOTHING_SIZES(["XXL"]),
+  },
+  {
+    id: 14,
+    slug: "minimal-hair-clip",
+    name: { ar: "مشبك شعر بسيط · نموذج تجريبي", en: "Minimal Hair Clip · Sample" },
+    price: 45,
+    rating: 4.1,
+    reviewCount: 0,
+    images: [],
+    categoryId: "women",
+    subcategoryId: "accessories",
+    description: {
+      ar: "بيانات تجريبية لمنتج لا يحتاج إلى خيارات لون أو مقاس.",
+      en: "Sample data for a product with no color or size options.",
+    },
+    colors: [],
   },
 ];
-
-/**
- * Maps each subcategory label used in CATEGORY_GROUPS (both Arabic and English
- * variants) to the ids of the products that belong to it. Kept here because the
- * Product type intentionally has no subcategory field.
- */
-export const SUBCATEGORY_PRODUCT_IDS: Record<string, number[]> = {
-  // Women
-  "فساتين": [1, 5],
-  Dresses: [1, 5],
-  "توبات وقمصان": [10],
-  "Tops & shirts": [10],
-  "عبايات ومعاطف": [3],
-  "Abayas & coats": [3],
-  "بناطيل وتنانير": [],
-  "Trousers & skirts": [],
-  // Men
-  "قمصان": [8],
-  Shirts: [8],
-  "تيشيرتات": [],
-  "T-shirts": [],
-  "بناطيل": [],
-  Trousers: [],
-  "جاكيتات": [],
-  Jackets: [],
-  // Kids
-  "أزياء أطفال": [11],
-  "Kids’ fashion": [11],
-  "أحذية أطفال": [12],
-  "Kids’ shoes": [12],
-  "إكسسوارات أطفال": [],
-  "Kids’ accessories": [],
-  // Shoes & bags
-  "أحذية نسائية": [4],
-  "Women’s shoes": [4],
-  "أحذية رجالية": [9],
-  "Men’s shoes": [9],
-  "حقائب يد": [2],
-  Handbags: [2],
-  "حقائب ظهر": [7],
-  Backpacks: [7],
-};
 
 export function getProductById(id: number): Product | undefined {
   return PRODUCTS.find((p) => p.id === id);

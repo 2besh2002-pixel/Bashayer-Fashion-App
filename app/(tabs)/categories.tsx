@@ -5,19 +5,14 @@ import { AppText } from '@/src/components/ui/AppText';
 import { Icon } from '@/src/components/ui/Icon';
 import { Screen } from '@/src/components/ui/Screen';
 import { useTranslation } from '@/src/hooks/useTranslation';
-import { CATEGORY_GROUPS } from '@/src/data/products';
+import { MAIN_CATEGORIES } from '@/src/data/categories';
 import { pick } from '@/src/utils/format';
 
 export default function CategoriesScreen() {
   const router = useRouter();
   const { t, lang } = useTranslation();
 
-  // Main category navigation links - each navigates to its dedicated category route.
-  const mainCategories = [
-    { id: 'women', label: t('women') },
-    { id: 'men', label: t('men') },
-    { id: 'kids', label: t('kids') },
-  ];
+  const mainCategories = MAIN_CATEGORIES;
 
   return (
     <Screen edges={['top', 'bottom']}>
@@ -28,7 +23,10 @@ export default function CategoriesScreen() {
       </View>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
         <View className="mt-2 flex-row gap-2 px-[18px]">
-          {[{ id: 'all', label: t('all') }, ...mainCategories].map((seg) => (
+          {[
+            { id: 'all', label: t('all') },
+            ...mainCategories.map((c) => ({ id: c.id, label: pick(c.name, lang) })),
+          ].map((seg) => (
             <Pressable
               key={seg.id}
               onPress={() => seg.id === 'all' ? router.push('/(tabs)/categories') : router.push(`/categories/${seg.id}`)}
@@ -41,7 +39,7 @@ export default function CategoriesScreen() {
           ))}
         </View>
 
-        {/* Dedicated category routes */}
+        {/* Main categories with their subcategories */}
         <View className="mt-5 px-[18px]">
           {mainCategories.map((cat) => (
             <View key={cat.id} className="mb-5">
@@ -50,11 +48,11 @@ export default function CategoriesScreen() {
                 className="overflow-hidden rounded-2xl active:opacity-90"
               >
                 <View className="relative h-[150px]">
-                  <Image source={{ uri: CATEGORY_GROUPS.find((g) => g.id === cat.id)?.image ?? CATEGORY_GROUPS[0].image }} className="h-full w-full" resizeMode="cover" />
+                  <Image source={{ uri: cat.image }} className="h-full w-full" resizeMode="cover" />
                   <View className="absolute inset-0 bg-black/30" />
                   <View className="absolute bottom-0 left-0 right-0 p-4">
                     <AppText serif weight={700} className="text-[20px] text-white">
-                      {cat.label}
+                      {pick(cat.name, lang)}
                     </AppText>
                     <AppText className="mt-1 text-[10px] text-white/90">
                       {t('exploreCollection')}
@@ -63,13 +61,15 @@ export default function CategoriesScreen() {
                 </View>
               </Pressable>
               <View className="mt-3">
-                {CATEGORY_GROUPS.find((g) => g.id === cat.id)?.items.map((item) => (
+                {cat.subcategories.map((sub) => (
                   <Pressable
-                    key={pick(item, lang)}
-                    onPress={() => router.push(`/categories/${cat.id}?subcategory=${encodeURIComponent(pick(item, lang))}`)}
+                    key={sub.id}
+                    onPress={() =>
+                      router.push(`/categories/${cat.id}?subcategory=${encodeURIComponent(pick(sub.name, lang))}`)
+                    }
                     className="flex-row items-center justify-between border-b border-line py-3 active:opacity-70"
                   >
-                    <AppText className="text-[11px] text-ink">{pick(item, lang)}</AppText>
+                    <AppText className="text-[11px] text-ink">{pick(sub.name, lang)}</AppText>
                     <Icon name="chevron" size={16} color="#78706a" direction="forward" />
                   </Pressable>
                 ))}
@@ -78,41 +78,19 @@ export default function CategoriesScreen() {
           ))}
         </View>
 
-        {/* Shoes & Bags group */}
+        {/* Legacy shoes & bags entry */}
         <View className="mt-2 px-[18px]">
           <Pressable
             onPress={() => router.push('/categories/shoes-bags')}
-            className="overflow-hidden rounded-2xl active:opacity-90"
+            className="rounded-2xl border-b border-line pb-3 active:opacity-90"
           >
-            <View className="relative h-[150px]">
-              <Image source={{ uri: CATEGORY_GROUPS.find((g) => g.id === 'shoes-bags')?.image ?? CATEGORY_GROUPS[0].image }} className="h-full w-full" resizeMode="cover" />
-              <View className="absolute inset-0 bg-black/30" />
-              <View className="absolute bottom-0 left-0 right-0 p-4">
-                <AppText serif weight={700} className="text-[20px] text-white">
-                  {t('shoesAndBags')}
-                </AppText>
-                <AppText className="mt-1 text-[10px] text-white/90">
-                  {t('exploreCollection')}
-                </AppText>
-              </View>
-            </View>
+            <AppText serif weight={700} className="text-[20px] text-ink">
+              {t('shoesAndBags')}
+            </AppText>
+            <AppText className="mt-1 text-[10px] text-ink">{t('exploreCollection')}</AppText>
           </Pressable>
-          <View className="mt-3">
-            {CATEGORY_GROUPS.find((g) => g.id === 'shoes-bags')?.items.map((item) => (
-              <Pressable
-                key={pick(item, lang)}
-                onPress={() => router.push(`/categories/shoes-bags?subcategory=${encodeURIComponent(pick(item, lang))}`)}
-                className="flex-row items-center justify-between border-b border-line py-3 active:opacity-70"
-              >
-                <AppText className="text-[11px] text-ink">{pick(item, lang)}</AppText>
-                <Icon name="chevron" size={16} color="#78706a" direction="forward" />
-              </Pressable>
-            ))}
-          </View>
         </View>
       </ScrollView>
     </Screen>
   );
 }
-
-

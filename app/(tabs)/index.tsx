@@ -14,9 +14,10 @@ import { useTranslation } from '@/src/hooks/useTranslation';
 import { useAuthStore } from '@/src/stores/authStore';
 import { useSettingsStore } from '@/src/stores/settingsStore';
 import { useUiStore } from '@/src/stores/uiStore';
-import { CATEGORIES, PRODUCTS } from '@/src/data/products';
+import { MAIN_CATEGORIES } from '@/src/data/categories';
 import { pick } from '@/src/utils/format';
 import type { Product } from '@/src/types';
+import { useCatalogProducts } from '@/src/hooks/useCatalogProducts';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -24,6 +25,7 @@ export default function HomeScreen() {
   const logout = useAuthStore((s) => s.logout);
   const toggleLang = useSettingsStore((s) => s.toggleLang);
   const showToast = useUiStore((s) => s.showToast);
+  const { products, isLoading, hasError, retry } = useCatalogProducts();
 
   const [currencyVisible, setCurrencyVisible] = useState(false);
   const [logoutVisible, setLogoutVisible] = useState(false);
@@ -79,31 +81,20 @@ export default function HomeScreen() {
         <SectionHeader title={t('shopByCategory')} actionLabel={t('viewAll')} onPressAction={() => router.push('/(tabs)/categories')} />
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 18, gap: 12 }}>
-          {CATEGORIES.map((cat, i) => {
-            // Map category IDs to dedicated category routes.
-            const routeMap: Record<string, string> = {
-              dresses: '/categories/women',
-              men: '/categories/men',
-              shoes: '/categories/shoes-bags',
-              bags: '/categories/shoes-bags',
-              accessories: '/categories/women',
-            };
-            const target = routeMap[cat.id] ?? '/(tabs)/categories';
-            return (
-              <Pressable
-                key={cat.id}
-                onPress={() => router.push(target)}
-                className="w-[84px] items-center active:opacity-70"
-              >
-                <View className="h-[72px] w-[72px] overflow-hidden rounded-full bg-chipBg">
-                  <Image source={{ uri: cat.image }} className="h-full w-full" resizeMode="cover" />
-                </View>
-                <AppText weight={600} className="mt-2 text-center text-[9px] text-ink">
-                  {pick(cat.name, lang)}
-                </AppText>
-              </Pressable>
-            );
-          })}
+          {MAIN_CATEGORIES.map((cat) => (
+            <Pressable
+              key={cat.id}
+              onPress={() => router.push(`/categories/${cat.id}`)}
+              className="w-[84px] items-center active:opacity-70"
+            >
+              <View className="h-[72px] w-[72px] overflow-hidden rounded-full bg-chipBg">
+                <Image source={{ uri: cat.image }} className="h-full w-full" resizeMode="cover" />
+              </View>
+              <AppText weight={600} className="mt-2 text-center text-[9px] text-ink">
+                {pick(cat.name, lang)}
+              </AppText>
+            </Pressable>
+          ))}
         </ScrollView>
 
         <Pressable
@@ -124,7 +115,15 @@ export default function HomeScreen() {
 
         <SectionHeader title={t('newArrivals')} actionLabel={t('viewAll')} onPressAction={() => router.push('/(tabs)/categories')} />
 
-        <ProductGrid products={PRODUCTS.slice(0, 6)} onPress={openProduct} />
+        {isLoading ? (
+          <AppText className="px-[18px] text-[10px] text-muted">{t('loading')}</AppText>
+        ) : hasError ? (
+          <Pressable onPress={retry} className="px-[18px]">
+            <AppText className="text-[10px] text-muted">{t('retry')}</AppText>
+          </Pressable>
+        ) : (
+          <ProductGrid products={products.slice(0, 6)} onPress={openProduct} />
+        )}
 
         <AppText className="mt-4 px-[18px] text-center text-[9px] text-muted">
           {t('prototypeNote')}

@@ -3,8 +3,11 @@ jest.mock("@react-native-async-storage/async-storage", () =>
 );
 
 import { PRODUCTS, getProductById } from "../src/data/products";
+import { BURGUNDY_PLATEAU_DRESS, GREY_DRESS } from "../src/data/images";
+import { lineUnitPrice } from "../src/hooks/useCartDetailed";
 import { useCartStore } from "../src/stores/cartStore";
 import { useWishlistStore } from "../src/stores/wishlistStore";
+import type { CartItem } from "../src/types";
 import { convertFromSar, formatPrice } from "../src/utils/currency";
 import { isValidOtp, isValidPhone, toFullPhone } from "../src/utils/validation";
 import { variantLineId } from "../src/utils/format";
@@ -41,12 +44,108 @@ describe("cart variants", () => {
 
   test("same variation merges and quantity is clamped", () => {
     const product = getProductById(1)!;
-    useCartStore.getState().addItem(product, { colorId: "burgundy", sizeId: "m", quantity: 2 });
-    useCartStore.getState().addItem(product, { colorId: "burgundy", sizeId: "m", quantity: 3 });
+    useCartStore.getState().addItem(product, { colorId: "gray", sizeId: "m", quantity: 2 });
+    useCartStore.getState().addItem(product, { colorId: "gray", sizeId: "m", quantity: 3 });
     expect(useCartStore.getState().items).toHaveLength(1);
     expect(useCartStore.getState().items[0].quantity).toBe(5);
     useCartStore.getState().setQuantity(useCartStore.getState().items[0].id, 999);
     expect(useCartStore.getState().items[0].quantity).toBe(10);
+  });
+});
+
+describe("cart variation snapshots", () => {
+  test("cart item stores the exact variation data", () => {
+    const product = getProductById(1)!;
+    useCartStore.getState().addItem(product, { colorId: "burgundy", sizeId: "s" });
+    const item = useCartStore.getState().items[0];
+    expect(item.id).toBe(variantLineId(1, "burgundy", "s"));
+    expect(item.variationId).toBe("1:burgundy:s");
+    expect(item.sku).toBe("1-burgundy-s");
+    expect(item.colorName?.en).toBe("Burgundy");
+    expect(item.sizeLabel).toBe("S");
+    expect(item.unitPrice).toBe(429);
+    expect(item.productName?.en).toBe("Laurène Pleated Dress");
+    expect(item.image).toBe(BURGUNDY_PLATEAU_DRESS);
+    expect(item.discountPercent).toBe(18);
+  });
+
+  test("gray dress adds to cart with its selected color and size", () => {
+    const product = getProductById(1)!;
+    useCartStore.getState().addItem(product, { colorId: "gray", sizeId: "s" });
+    const item = useCartStore.getState().items[0];
+    expect(item.colorId).toBe("gray");
+    expect(item.colorName?.en).toBe("Gray");
+    expect(item.sizeId).toBe("s");
+    expect(item.sizeLabel).toBe("S");
+    expect(item.image).toBe(GREY_DRESS);
+    expect(item.unitPrice).toBe(399);
+  });
+
+  test("one-size product adds without size selection", () => {
+    const product = getProductById(7)!;
+    useCartStore.getState().addItem(product, { colorId: "tan" });
+    const item = useCartStore.getState().items[0];
+    expect(item.sizeId).toBeNull();
+    expect(item.sizeLabel).toBe("O/S");
+  });
+
+  test("unavailable variations cannot be added and known stock caps quantity", () => {
+    const product = getProductById(1)!;
+    expect(useCartStore.getState().addItem(product, { colorId: "burgundy", sizeId: "l" })).toBe(
+      false,
+    );
+    expect(useCartStore.getState().items).toHaveLength(0);
+    expect(
+      useCartStore.getState().addItem(product, {
+        colorId: "burgundy",
+        sizeId: "m",
+        quantity: 9,
+      }),
+    ).toBe(true);
+    expect(useCartStore.getState().items[0].quantity).toBe(3);
+    useCartStore.getState().increment(useCartStore.getState().items[0].id);
+    expect(useCartStore.getState().items[0].quantity).toBe(3);
+  });
+
+  test("a product without options can be added using its base price", () => {
+    const product = getProductById(14)!;
+    expect(useCartStore.getState().addItem(product)).toBe(true);
+    const item = useCartStore.getState().items[0];
+    expect(item.colorId).toBeNull();
+    expect(item.sizeId).toBeNull();
+    expect(item.unitPrice).toBe(45);
+    expect(item.productName?.en).toBe("Minimal Hair Clip · Sample");
+  });
+
+  test("different variations are separate lines; same variation merges", () => {
+    const product = getProductById(5)!;
+    useCartStore.getState().addItem(product, { colorId: "ivory", sizeId: "m" });
+    useCartStore.getState().addItem(product, { colorId: "burgundy", sizeId: "l" });
+    expect(useCartStore.getState().items).toHaveLength(2);
+    useCartStore.getState().addItem(product, { colorId: "burgundy", sizeId: "l" });
+    expect(useCartStore.getState().items).toHaveLength(2);
+    const line = useCartStore.getState().items.find((i) => i.colorId === "burgundy");
+    expect(line?.quantity).toBe(2);
+    expect(line?.unitPrice).toBe(375);
+  });
+});
+
+describe("cart line price", () => {
+  test("lineUnitPrice uses the stored snapshot; falls back for legacy lines", () => {
+    const product = getProductById(1)!;
+    const legacy = {
+      id: "1:burgundy:s",
+      productId: 1,
+      colorId: "burgundy",
+      sizeId: "s",
+      quantity: 1,
+      variationId: "1:burgundy:s",
+      sku: "1-burgundy-s",
+      unitPrice: undefined,
+    } as unknown as CartItem;
+    expect(lineUnitPrice(legacy, product)).toBe(429);
+    const fresh = { ...legacy, unitPrice: 160 } as CartItem;
+    expect(lineUnitPrice(fresh, product)).toBe(160);
   });
 });
 

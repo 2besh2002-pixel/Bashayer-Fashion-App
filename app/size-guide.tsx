@@ -4,14 +4,15 @@ import { PageHeader } from '@/src/components/ui/PageHeader';
 import { Screen } from '@/src/components/ui/Screen';
 import { useTranslation } from '@/src/hooks/useTranslation';
 import { useSettingsStore } from '@/src/stores/settingsStore';
-import { getProductById } from '@/src/data/products';
+import { useCatalogProducts } from '@/src/hooks/useCatalogProducts';
 
 /** Size guide screen: readable product measurements with a cm/in unit toggle. */
 export default function SizeGuideScreen() {
   const { t } = useTranslation();
   const unit = useSettingsStore((s) => s.unit);
   const setUnit = useSettingsStore((s) => s.setUnit);
-  const product = getProductById(1);
+  const { products, isLoading, hasError, retry } = useCatalogProducts();
+  const product = products.find((item) => item.id === 1);
 
   const val = (cm: number) => (unit === 'cm' ? String(cm) : (cm / 2.54).toFixed(1));
 
@@ -57,7 +58,13 @@ export default function SizeGuideScreen() {
         </AppText>
         <AppText className="mb-3 text-[9px] text-muted">{t('measurementsNote')}</AppText>
 
-        {product?.measurements && product.measurements.length > 0 ? (
+        {isLoading ? (
+          <AppText className="text-[11px] text-muted">{t('loading')}</AppText>
+        ) : hasError ? (
+          <Pressable onPress={retry}>
+            <AppText className="text-[11px] text-muted">{t('retry')}</AppText>
+          </Pressable>
+        ) : product?.measurements && product.measurements.length > 0 ? (
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View className="overflow-hidden rounded-xl border border-line">
               <View className="flex-row bg-chipBg">

@@ -1,4 +1,4 @@
-import { Image, Pressable, ScrollView, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 
@@ -11,24 +11,43 @@ import { Screen } from '@/src/components/ui/Screen';
 import { SummaryRow } from '@/src/components/commerce/SummaryRow';
 import { AuthPromptDialog } from '@/src/components/ui/AuthPromptDialog';
 import { useTranslation } from '@/src/hooks/useTranslation';
-import { useCartDetailed } from '@/src/hooks/useCartDetailed';
-import { useCartStore } from '@/src/stores/cartStore';
+import { useCartDetailed, lineUnitPrice } from '@/src/hooks/useCartDetailed';
+import { useCatalogProducts } from '@/src/hooks/useCatalogProducts';
+import { useCartStore, MAX_QUANTITY, MIN_QUANTITY } from '@/src/stores/cartStore';
 import { usePrice } from '@/src/hooks/usePrice';
 import { useUiStore } from '@/src/stores/uiStore';
 import { useAuthStore } from '@/src/stores/authStore';
 import { pick } from '@/src/utils/format';
+import { resolveVariation } from '@/src/utils/productVariants';
+import { ProductImage } from '@/src/components/commerce/ProductImage';
 
 export default function CartScreen() {
   const router = useRouter();
   const { t, lang } = useTranslation();
   const price = usePrice();
-  const { lines, subtotalSar } = useCartDetailed();
+  const { products, isLoading, hasError, retry } = useCatalogProducts();
+  const { lines, subtotalSar } = useCartDetailed(products);
   const increment = useCartStore((s) => s.increment);
   const decrement = useCartStore((s) => s.decrement);
   const remove = useCartStore((s) => s.remove);
   const showToast = useUiStore((s) => s.showToast);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const [authPrompt, setAuthPrompt] = useState(false);
+
+  if (lines.length === 0 && (isLoading || hasError)) {
+    return (
+      <Screen edges={['top', 'bottom']}>
+        <View className="border-b border-line bg-paper px-4 py-3">
+          <AppText weight={700} className="text-[16px] text-ink">
+            {t('titleCart')}
+          </AppText>
+        </View>
+        <Pressable onPress={retry} className="flex-1 items-center justify-center">
+          <AppText className="text-muted">{hasError ? t('retry') : t('loading')}</AppText>
+        </Pressable>
+      </Screen>
+    );
+  }
 
   if (lines.length === 0) {
     return (
@@ -73,27 +92,45 @@ export default function CartScreen() {
         </View>
 
         {lines.map(({ item, product, lineTotal }) => {
-          const sizeLabel = product.sizes.find((s) => s.id === item.sizeId)?.label ?? t('noOptions');
-          const colorLabel = product.colors.find((c) => c.id === item.colorId);
-          const colorName = colorLabel ? pick(colorLabel.name, lang) : t('noOptions');
+          // Use the variation snapshot stored when the item was added; fall
+          // back to resolving from the catalogue for pre-migration lines.
+          const unitPrice = lineUnitPrice(item, product);
+          const variation = resolveVariation(product, item.colorId, item.sizeId);
+          const image = item.image || product.images[0];
+          const colorLabel = item.colorName ?? product.colors.find((c) => c.id === item.colorId)?.name;
+          const colorName = colorLabel ? pick(colorLabel, lang) : t('noOptions');
+          const sizeLabel =
+            item.sizeLabel ??
+            variation.size?.label ??
+            product.sizes?.find((s) => s.id === item.sizeId)?.label;
+          const maxQty = variation.stock ?? MAX_QUANTITY;
           return (
           <View key={item.id} className="mb-3 flex-row gap-3 rounded-2xl border border-line bg-paper p-3">
-            <Image source={{ uri: product.images[0] }} className="h-[80px] w-[68px] rounded-xl" resizeMode="cover" />
+            <ProductImage uri={image} className="h-[80px] w-[68px] rounded-xl" />
             <View className="flex-1">
               <AppText weight={600} className="text-[11px] text-ink">
-                {pick(product.name, lang)}
+                {pick(item.productName ?? product.name, lang)}
               </AppText>
               <AppText className="mt-0.5 text-[9px] text-muted">
-                {t('sizeLabel')}: {sizeLabel} · {t('colorLabel')}: {colorName}
+                {t('sizeLabel')}: {sizeLabel ?? t('noOptions')} · {t('colorLabel')}: {colorName}
               </AppText>
               <AppText weight={600} className="mt-1 text-[11px] text-wine">
-                {price(product.price)} × {item.quantity} = {price(lineTotal)}
+                {price(unitPrice)} × {item.quantity} = {price(lineTotal)}
               </AppText>
               <View className="mt-2 flex-row items-center justify-between">
                 <QuantityStepper
                   value={item.quantity}
-                  onIncrease={() => increment(item.id)}
+                  onIncrease={() => {
+                    if (item.quantity >= maxQty) {
+                      // Respect the variation's stock: do not let it go up.
+                      showToast(t('soldOut'));
+                      return;
+                    }
+                    increment(item.id);
+                  }}
                   onDecrease={() => decrement(item.id)}
+                  min={MIN_QUANTITY}
+                  max={maxQty}
                 />
                 <Pressable
                   onPress={() => {

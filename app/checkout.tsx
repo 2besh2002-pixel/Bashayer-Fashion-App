@@ -11,8 +11,10 @@ import { PageHeader } from '@/src/components/ui/PageHeader';
 import { Screen } from '@/src/components/ui/Screen';
 import { SummaryRow } from '@/src/components/commerce/SummaryRow';
 import { useTranslation } from '@/src/hooks/useTranslation';
-import { useCartDetailed } from '@/src/hooks/useCartDetailed';
+import { useCartDetailed, lineUnitPrice } from '@/src/hooks/useCartDetailed';
+import { useCatalogProducts } from '@/src/hooks/useCatalogProducts';
 import { useCartStore } from '@/src/stores/cartStore';
+import { resolveVariation } from '@/src/utils/productVariants';
 import { usePrice } from '@/src/hooks/usePrice';
 import { useUiStore } from '@/src/stores/uiStore';
 import { useSettingsStore } from '@/src/stores/settingsStore';
@@ -25,7 +27,8 @@ export default function CheckoutScreen() {
   const router = useRouter();
   const { t, lang } = useTranslation();
   const price = usePrice();
-  const { lines, subtotalSar } = useCartDetailed();
+  const { products, isLoading, hasError, retry } = useCatalogProducts();
+  const { lines, subtotalSar } = useCartDetailed(products);
   const clearCart = useCartStore((s) => s.clear);
   const showToast = useUiStore((s) => s.showToast);
   const currency = useSettingsStore((s) => s.currency);
@@ -80,15 +83,24 @@ export default function CheckoutScreen() {
       id: demoOrderNumber(),
       createdAt: new Date().toISOString(),
       status: 'processing' as const,
-      lines: lines.map(({ item, product }) => ({
-        productId: product.id,
-        name: product.name,
-        image: product.images[0],
-        colorName: product.colors.find((c) => c.id === item.colorId)?.name,
-        sizeLabel: product.sizes.find((s) => s.id === item.sizeId)?.label,
-        quantity: item.quantity,
-        unitPrice: product.price,
-      })),
+      lines: lines.map(({ item, product }) => {
+        const resolved = item.unitPrice != null
+          ? undefined
+          : resolveVariation(product, item.colorId, item.sizeId);
+        return {
+          productId: product.id,
+          name: item.productName ?? product.name,
+          image: item.image || product.images[0],
+          colorName:
+            item.colorName ?? product.colors.find((c) => c.id === item.colorId)?.name,
+          sizeLabel:
+            item.sizeLabel ??
+            resolved?.size?.label ??
+            product.sizes?.find((s) => s.id === item.sizeId)?.label,
+          quantity: item.quantity,
+          unitPrice: lineUnitPrice(item, product),
+        };
+      }),
       subtotal: subtotalSar,
       deliveryFee: 0,
       discount: 0,
@@ -103,6 +115,29 @@ export default function CheckoutScreen() {
   };
 
   const stepTitles = [t('checkoutAddress'), t('checkoutDelivery'), t('checkoutPayment'), t('checkoutReview')];
+
+  if (isLoading || hasError) {
+    return (
+      <Screen edges={['top', 'bottom']}>
+        <PageHeader title={t('titleCheckout')} showBack />
+        <Pressable onPress={retry} className="flex-1 items-center justify-center">
+          <AppText className="text-muted">{hasError ? t('retry') : t('loading')}</AppText>
+        </Pressable>
+        <AuthPromptDialog
+          visible={authPrompt}
+          onClose={() => setAuthPrompt(false)}
+          onLogin={() => {
+            setAuthPrompt(false);
+            router.push('/login');
+          }}
+          onRegister={() => {
+            setAuthPrompt(false);
+            router.push('/register');
+          }}
+        />
+      </Screen>
+    );
+  }
 
   return (
     <Screen edges={['top', 'bottom']}>
@@ -313,7 +348,7 @@ export default function CheckoutScreen() {
                     {pick(product.name, lang)} × {item.quantity}
                   </AppText>
                   <AppText className="text-[10px] text-wine">
-                    {price(product.price * item.quantity)}
+                    {price(lineUnitPrice(item, product) * item.quantity)}
                   </AppText>
                 </View>
               ))}

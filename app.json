@@ -34,7 +34,8 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": false
@@ -46,9 +47,15 @@
         }
       },
       "eas": {
-        "projectId": "f337a78f-325b-4eb2-820c-95e1eb39b05f"
+        "projectId": "5d254e60-9b77-4e30-ae60-4de3622e242c"
       }
     },
-    "owner": "bashayerbamarhul"
+    "owner": "bashayerbamarhuls-team",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/5d254e60-9b77-4e30-ae60-4de3622e242c"
+    }
   }
 }

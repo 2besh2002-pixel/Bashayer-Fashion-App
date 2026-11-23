@@ -9,7 +9,7 @@ import { PageHeader } from '@/src/components/ui/PageHeader';
 import { ProductGrid } from '@/src/components/commerce/ProductCard';
 import { Screen } from '@/src/components/ui/Screen';
 import { useTranslation } from '@/src/hooks/useTranslation';
-import { mockCatalogRepository } from '@/src/repositories/mockCatalogRepository';
+import { repositories } from '@/src/repositories';
 import type { Product } from '@/src/types';
 
 export default function SearchScreen() {
@@ -26,7 +26,7 @@ export default function SearchScreen() {
       setSearched(false);
       return;
     }
-    const res = await mockCatalogRepository.search(q, lang);
+    const res = await repositories.catalog.search(q, lang);
     setResults(res);
     setSearched(true);
   };

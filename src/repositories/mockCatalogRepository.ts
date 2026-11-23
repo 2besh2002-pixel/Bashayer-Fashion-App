@@ -1,19 +1,22 @@
 import type { Lang, Product } from "@/src/types";
 import type { CatalogRepository } from "@/src/repositories/types";
-import { CATEGORIES, PRODUCTS, getProductById } from "@/src/data/products";
+import { MAIN_CATEGORIES } from "@/src/data/categories";
+import { PRODUCTS, getProductById } from "@/src/data/products";
 import { pick } from "@/src/utils/format";
 
 function matches(product: Product, query: string, lang: Lang): boolean {
   const q = query.trim().toLowerCase();
   if (!q) return true;
   // Search both locales so Arabic queries find English slugs and vice versa.
-  const category = CATEGORIES.find((c) => c.id === product.categoryId);
+  const category = MAIN_CATEGORIES.find((c) => c.id === product.categoryId);
   const haystack = [
     product.name.ar,
     product.name.en,
     product.description.ar,
     product.description.en,
     product.slug,
+    product.categoryId,
+    product.subcategoryId ?? "",
     category?.name.ar ?? "",
     category?.name.en ?? "",
     pick(product.badge, lang),
@@ -32,7 +35,7 @@ export const mockCatalogRepository: CatalogRepository = {
     return getProductById(id);
   },
   async listCategories() {
-    return CATEGORIES;
+    return MAIN_CATEGORIES;
   },
   async search(query, lang) {
     return PRODUCTS.filter((p) => matches(p, query, lang));

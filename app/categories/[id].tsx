@@ -4,72 +4,130 @@ import { Pressable, ScrollView, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { AppText } from '@/src/components/ui/AppText';
+import { AppTextInput } from '@/src/components/ui/AppTextInput';
 import { ProductGrid } from '@/src/components/commerce/ProductCard';
 import { Screen } from '@/src/components/ui/Screen';
 import { useTranslation } from '@/src/hooks/useTranslation';
-import { CATEGORY_GROUPS, PRODUCTS, SUBCATEGORY_PRODUCT_IDS } from '@/src/data/products';
+import { getCategoryByRoute, getProductsByRoute } from '@/src/data/categories';
+import {
+  availableColorIds,
+  availableSizeIds,
+  filterProducts,
+} from '@/src/utils/filterProducts';
 import { pick } from '@/src/utils/format';
 import { PageHeader } from '@/src/components/ui/PageHeader';
-import type { Product } from '@/src/types';
+import type { Product, ProductColor } from '@/src/types';
+import type { TranslationKey } from '@/src/i18n/translations';
+import { useCatalogProducts } from '@/src/hooks/useCatalogProducts';
 
 type SortOption = 'newest' | 'priceAsc' | 'priceDesc' | 'rating';
 
 /**
  * Dedicated category listing screen.
- * Products are scoped to the current category and can be narrowed further by a
- * subcategory passed through the `subcategory` search param.
+ *
+ * Works for the new main routes (women / men / kids) and the legacy routes
+ * (shoes-bags, dresses, bags, shoes, accessories) so every navigation target
+ * keeps working. Products are scoped to the main category + optional
+ * subcategory, and filtered by price, colors, sizes, availability and
+ * discounts using the real catalogue data.
  */
 export default function CategoryListingScreen() {
   const router = useRouter();
   const { id, subcategory } = useLocalSearchParams<{ id: string; subcategory?: string }>();
   const { t, lang } = useTranslation();
+  const { products, isLoading, hasError, retry } = useCatalogProducts();
   const [sort, setSort] = useState<SortOption | null>(null);
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [selectedColors, setSelectedColors] = useState<string[]>([]);
+  const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
+  const [inStockOnly, setInStockOnly] = useState(false);
+  const [discountsOnly, setDiscountsOnly] = useState(false);
 
-  // Resolve category title using existing translation keys.
+  // Main categories carry real names; legacy ids map to existing translation keys.
+  const main = getCategoryByRoute(id);
   const titleKeyMap: Record<string, string> = {
-    women: 'women',
-    men: 'men',
-    kids: 'kids',
-    shoes: 'shoes',
-    bags: 'bags',
-    accessories: 'categoryAccessories',
     dresses: 'categoryDresses',
+    bags: 'categoryBags',
+    shoes: 'categoryShoes',
+    accessories: 'categoryAccessories',
     'shoes-bags': 'shoesAndBags',
   };
-  const titleKey = titleKeyMap[id] ?? id;
-  const title = t(titleKey as any);
+  const title = main ? pick(main.name, lang) : t((titleKeyMap[id] ?? id) as TranslationKey);
 
-  // Subcategories come from CATEGORY_GROUPS for this category group.
-  const subcategories = CATEGORY_GROUPS.find((g) => g.id === id)?.items ?? [];
+  // Subcategories come from the main category definition.
+  const subcategories = main?.subcategories ?? [];
 
-  // The param stores the label text in the language it was picked in. Resolve
-  // against both variants so the active chip survives a language toggle.
-  const activeSubcategory = subcategories.find(
-    (item) => item.ar === subcategory || item.en === subcategory,
+  // The param stores the label text in the language it was picked in.
+  const activeSubId = subcategories.find(
+    (s) => pick(s.name, lang) === subcategory || s.id === subcategory,
+  )?.id;
+  const hasSubcategoryFilter = Boolean(activeSubId);
+
+  // Base products for this route (scoped to the main category or legacy group).
+  const baseProducts: Product[] = getProductsByRoute(id, products);
+
+  // Real filter options from the products themselves.
+  const colorMap = new Map<string, ProductColor>();
+  for (const product of baseProducts) {
+    for (const color of product.colors) {
+      if (!colorMap.has(color.id)) colorMap.set(color.id, color);
+    }
+  }
+  const availableColorIdsInCategory = new Set(baseProducts.flatMap((p) => availableColorIds(p)));
+  const availableColorList = Array.from(colorMap.values()).filter(
+    (color) => availableColorIdsInCategory.has(color.id),
   );
-  const hasSubcategoryFilter = Boolean(subcategory);
+  const availableSizes = Array.from(new Set(baseProducts.flatMap((p) => availableSizeIds(p))));
+  const sizeLabelById = (sizeId: string): string => {
+    for (const color of colorMap.values()) {
+      const found = color.sizes.find((s) => s.id === sizeId);
+      if (found) return found.label;
+    }
+    for (const product of baseProducts) {
+      const found = product.sizes?.find((s) => s.id === sizeId);
+      if (found) return found.label;
+    }
+    return sizeId;
+  };
 
-  // Scope products to the current category. Women spans dresses + accessories;
-  // shoes-bags spans shoes + bags. Other groups match their categoryId directly.
-  const baseProducts: Product[] = id === 'shoes-bags'
-    ? PRODUCTS.filter((p) => ['shoes', 'bags'].includes(p.categoryId))
-    : id === 'women'
-      ? PRODUCTS.filter((p) => ['dresses', 'accessories'].includes(p.categoryId))
-      : PRODUCTS.filter((p) => p.categoryId === id);
+  // Apply filters with the centralized filter logic.
+  const parsedMin = minPrice.trim() ? Number.parseFloat(minPrice) : undefined;
+  const parsedMax = maxPrice.trim() ? Number.parseFloat(maxPrice) : undefined;
+  const validMin = parsedMin != null && !Number.isNaN(parsedMin) ? parsedMin : undefined;
+  const validMax = parsedMax != null && !Number.isNaN(parsedMax) ? parsedMax : undefined;
 
-  // Apply the subcategory filter using the shared id mapping. An unmapped (or
-  // empty) subcategory intentionally yields the no-results state.
-  const mappedIds = subcategory ? SUBCATEGORY_PRODUCT_IDS[subcategory] : undefined;
-  const displayedProducts = [...(hasSubcategoryFilter
-    ? mappedIds && mappedIds.length > 0
-      ? baseProducts.filter((p) => mappedIds.includes(p.id))
-      : []
-    : baseProducts)];
+  let displayedProducts = filterProducts(baseProducts, {
+    categoryId: main?.id,
+    subcategoryId: hasSubcategoryFilter ? activeSubId : undefined,
+    priceMin: validMin,
+    priceMax: validMax,
+    availableColors: selectedColors.length ? selectedColors : undefined,
+    availableSizes: selectedSizes.length ? selectedSizes : undefined,
+    inStock: inStockOnly || undefined,
+    hasDiscount: discountsOnly || undefined,
+  });
 
-  if (sort === 'newest') displayedProducts.sort((a, b) => b.id - a.id);
-  else if (sort === 'priceAsc') displayedProducts.sort((a, b) => a.price - b.price);
-  else if (sort === 'priceDesc') displayedProducts.sort((a, b) => b.price - a.price);
-  else if (sort === 'rating') displayedProducts.sort((a, b) => b.rating - a.rating);
+  if (sort === 'newest') displayedProducts = [...displayedProducts].sort((a, b) => b.id - a.id);
+  else if (sort === 'priceAsc') displayedProducts = [...displayedProducts].sort((a, b) => a.price - b.price);
+  else if (sort === 'priceDesc') displayedProducts = [...displayedProducts].sort((a, b) => b.price - a.price);
+  else if (sort === 'rating') displayedProducts = [...displayedProducts].sort((a, b) => b.rating - a.rating);
+
+  const toggleColor = (id: string) =>
+    setSelectedColors((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  const toggleSize = (id: string) =>
+    setSelectedSizes((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  const toggleInStock = () => setInStockOnly((v) => !v);
+  const toggleDiscounts = () => setDiscountsOnly((v) => !v);
+
+  const resetFilters = () => {
+    setMinPrice('');
+    setMaxPrice('');
+    setSelectedColors([]);
+    setSelectedSizes([]);
+    setInStockOnly(false);
+    setDiscountsOnly(false);
+  };
 
   const chooseSubcategory = (label?: string) => router.setParams({ subcategory: label });
 
@@ -80,10 +138,19 @@ export default function CategoryListingScreen() {
     { key: 'rating', label: t('sortRating') },
   ];
 
+  const hasFilters = inStockOnly || discountsOnly || selectedColors.length || selectedSizes.length || validMin != null || validMax != null;
+
   return (
     <Screen edges={['top', 'bottom']}>
       <PageHeader title={title} showBack />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
+        {isLoading ? (
+          <AppText className="px-[18px] py-4 text-[10px] text-muted">{t('loading')}</AppText>
+        ) : hasError ? (
+          <Pressable onPress={retry} className="px-[18px] py-4">
+            <AppText className="text-[10px] text-muted">{t('retry')}</AppText>
+          </Pressable>
+        ) : null}
         {/* Subcategory filters — narrow products within this category */}
         {subcategories.length > 0 ? (
           <View className="mt-2 px-[18px]">
@@ -94,21 +161,19 @@ export default function CategoryListingScreen() {
               <Pressable
                 onPress={() => chooseSubcategory(undefined)}
                 className={`rounded-full border px-3 py-1.5 active:opacity-70 ${
-                  !activeSubcategory ? 'border-ink bg-ink' : 'border-line bg-paper'
+                  !hasSubcategoryFilter ? 'border-ink bg-ink' : 'border-line bg-paper'
                 }`}
               >
-                <AppText weight={600} className={`text-[10px] ${!activeSubcategory ? 'text-white' : 'text-ink'}`}>
+                <AppText weight={600} className={`text-[10px] ${!hasSubcategoryFilter ? 'text-white' : 'text-ink'}`}>
                   {t('allCategoryItems')}
                 </AppText>
               </Pressable>
               {subcategories.map((item) => {
-                const label = pick(item, lang);
-                const isActive = Boolean(
-                  activeSubcategory && activeSubcategory.ar === item.ar && activeSubcategory.en === item.en,
-                );
+                const label = pick(item.name, lang);
+                const isActive = activeSubId === item.id;
                 return (
                   <Pressable
-                    key={label}
+                    key={item.id}
                     onPress={() => chooseSubcategory(label)}
                     className={`rounded-full border px-3 py-1.5 active:opacity-70 ${
                       isActive ? 'border-ink bg-ink' : 'border-line bg-paper'
@@ -143,6 +208,117 @@ export default function CategoryListingScreen() {
                   </Pressable>
                 );
               })}
+            </View>
+          </View>
+        ) : null}
+
+        {/* Real filters driven by catalog data */}
+        {availableColorList.length || availableSizes.length || hasFilters ? (
+          <View className="mt-2 px-[18px]">
+            <AppText weight={700} className="text-[14px] text-ink">
+              {t('filterTitle')}
+            </AppText>
+
+            {availableColorList.length ? (
+              <View className="mt-3 flex-row flex-wrap gap-2">
+                <AppText weight={600} className="self-center text-[10px] text-muted">
+                  {t('color')}
+                </AppText>
+                {availableColorList.map((color) => {
+                  const isActive = selectedColors.includes(color.id);
+                  return (
+                    <Pressable
+                      key={color.id}
+                      onPress={() => toggleColor(color.id)}
+                      className={`flex-row items-center gap-1.5 rounded-full border px-2.5 py-1 active:opacity-70 ${
+                        isActive ? 'border-wine bg-wine' : 'border-line bg-paper'
+                      }`}
+                    >
+                      <View
+                        className="h-2 w-2 rounded-full border border-line"
+                        style={{ backgroundColor: color.hex }}
+                      />
+                      <AppText className={`text-[9px] ${isActive ? 'text-white' : 'text-ink'}`}>
+                        {pick(color.name, lang)}
+                      </AppText>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            ) : null}
+
+            {availableSizes.length ? (
+              <View className="mt-2 flex-row flex-wrap gap-2">
+                <AppText weight={600} className="self-center text-[10px] text-muted">
+                  {t('size')}
+                </AppText>
+                {availableSizes.map((sizeId) => {
+                  const isActive = selectedSizes.includes(sizeId);
+                  return (
+                    <Pressable
+                      key={sizeId}
+                      onPress={() => toggleSize(sizeId)}
+                      className={`rounded-full border px-2.5 py-1 active:opacity-70 ${
+                        isActive ? 'border-wine bg-wine' : 'border-line bg-paper'
+                      }`}
+                    >
+                      <AppText className={`text-[9px] ${isActive ? 'text-white' : 'text-ink'}`}>
+                        {sizeLabelById(sizeId)}
+                      </AppText>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            ) : null}
+
+            {baseProducts.some((p) => p.compareAt != null || p.colors.some((c) => c.compareAt != null)) ? (
+              <Pressable
+                onPress={toggleDiscounts}
+                className={`mt-2 rounded-full border px-2.5 py-1 active:opacity-70 ${
+                  discountsOnly ? 'border-wine bg-wine' : 'border-line bg-paper'
+                }`}
+              >
+                <AppText className={`text-[9px] ${discountsOnly ? 'text-white' : 'text-ink'}`}>
+                  {t('discountsOnly')}
+                </AppText>
+              </Pressable>
+            ) : null}
+
+            <View className="mt-2 flex-row flex-wrap items-center gap-2">
+              <Pressable
+                onPress={toggleInStock}
+                className={`rounded-full border px-2.5 py-1 active:opacity-70 ${
+                  inStockOnly ? 'border-wine bg-wine' : 'border-line bg-paper'
+                }`}
+              >
+                <AppText className={`text-[9px] ${inStockOnly ? 'text-white' : 'text-ink'}`}>
+                  {t('inStockOnly')}
+                </AppText>
+              </Pressable>
+              {hasFilters ? (
+                <Pressable onPress={resetFilters} className="rounded-full border border-line px-2.5 py-1 active:opacity-70">
+                  <AppText className="text-[9px] text-ink">{t('reset')}</AppText>
+                </Pressable>
+              ) : null}
+            </View>
+
+            <View className="mt-2 flex-row gap-2">
+              <AppTextInput
+                value={minPrice}
+                onChangeText={setMinPrice}
+                placeholder={t('minPrice')}
+                placeholderTextColor="#9a928b"
+                keyboardType="numeric"
+                className="flex-1 text-[9px] text-ink"
+              />
+              <AppTextInput
+                value={maxPrice}
+                onChangeText={setMaxPrice}
+                placeholder={t('maxPrice')}
+                placeholderTextColor="#9a928b"
+                keyboardType="numeric"
+                className="flex-1 text-[9px] text-ink"
+              />
             </View>
           </View>
         ) : null}
