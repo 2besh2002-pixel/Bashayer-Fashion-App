@@ -18,6 +18,7 @@ import { Screen } from '@/src/components/ui/Screen';
 import type { TranslationKey } from '@/src/i18n/translations';
 import { useTranslation } from '@/src/hooks/useTranslation';
 import { useAuthStore } from '@/src/stores/authStore';
+import { getRepositorySource } from '@/src/repositories';
 import { colors } from '@/src/theme/tokens';
 import { PLAYFAIR_ITALIC } from '@/src/theme/typography';
 import {
@@ -161,6 +162,7 @@ export default function LoginScreen() {
   const otpError = errors.otp ?? (incompleteOtp ? 'errOtpInvalid' : null);
 
   const busy = status === 'authenticating';
+  const mockMode = getRepositorySource() === 'mock';
   const fullPhone = toFullPhone(country.code, phone);
   const phoneTail = phoneDigits(fullPhone).slice(-3).padStart(3, '•');
   const maskedPhone = `${country.code} ••• ••• ${phoneTail}`;
@@ -284,7 +286,11 @@ export default function LoginScreen() {
                 {t('loginSuccessText')}
               </AppText>
               <View className="mt-5 w-full">
-                <DemoDisclosure text={t('smsDemoDisclosure')} isRTL={isRTL} success />
+                <DemoDisclosure
+                  text={t(mockMode ? 'smsDemoDisclosure' : 'smsServerDisclosure')}
+                  isRTL={isRTL}
+                  success
+                />
               </View>
               <Button
                 onPress={() => router.replace('/(tabs)/account')}
@@ -312,7 +318,10 @@ export default function LoginScreen() {
                 </AppText>
               </AuthHeader>
 
-              <DemoDisclosure text={t('otpDemoDisclosure')} isRTL={isRTL} />
+              <DemoDisclosure
+                text={t(mockMode ? 'otpDemoDisclosure' : 'otpServerDisclosure')}
+                isRTL={isRTL}
+              />
 
               <AppText
                 weight={600}

@@ -107,6 +107,10 @@ export default function CheckoutScreen() {
       total: subtotalSar,
       currencyAtCheckout: currency,
       isDemo: true,
+      // Prepared fields for the documented POST /orders body. They are stored
+      // on the local demo order too; mock checkout behaviour is unchanged.
+      ...(selectedAddress ? { addressId: selectedAddress } : {}),
+      paymentMethod: payment,
     };
     await repositories.orders.create(order);
     clearCart();

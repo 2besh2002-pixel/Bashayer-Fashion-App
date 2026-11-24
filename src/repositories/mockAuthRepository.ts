@@ -9,8 +9,9 @@ import type { AuthRepository, PhoneRegistrationInput } from "@/src/repositories/
  *
  * This is NOT production authentication: demo passwords are held only in memory
  * and there is no server-side identity verification. Never present this
- * as secure. A real implementation would call the store Middleware auth endpoints
- * (see ENDPOINTS.auth) and keep the returned access token in SecureStore only.
+ * as secure. A real implementation is prepared in apiAuthRepository.ts: it calls
+ * the documented OTP endpoints (API_PATHS.auth) and keeps the returned JWT in
+ * SecureStore only. Mock tokens are never sent to a real backend.
  *
  * The phone + OTP flow is likewise a UI prototype: any 4 digits are accepted and
  * no SMS is ever sent. Only public profile fields are persisted to AsyncStorage.

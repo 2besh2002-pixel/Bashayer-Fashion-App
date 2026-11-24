@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { Image } from 'expo-image';
+import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
@@ -13,7 +14,11 @@ import { usePrice } from '@/src/hooks/usePrice';
 import { useUiStore } from '@/src/stores/uiStore';
 import { useWishlistStore } from '@/src/stores/wishlistStore';
 import { pick } from '@/src/utils/format';
-import { resolveVariation, retainAvailableSize } from '@/src/utils/productVariants';
+import {
+  resolveInitialSelection,
+  resolveVariation,
+  retainAvailableSize,
+} from '@/src/utils/productVariants';
 import { ProductGrid } from '@/src/components/commerce/ProductCard';
 import { QuantityStepper } from '@/src/components/commerce/QuantityStepper';
 import { useCatalogProducts } from '@/src/hooks/useCatalogProducts';
@@ -21,7 +26,11 @@ import { ProductImage } from '@/src/components/commerce/ProductImage';
 
 export default function ProductScreen() {
   const router = useRouter();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, colorId: colorParam, sizeId: sizeParam } = useLocalSearchParams<{
+    id: string;
+    colorId?: string | string[];
+    sizeId?: string | string[];
+  }>();
   const { products, isLoading, hasError, retry } = useCatalogProducts();
   const product = products.find((item) => item.id === Number(id));
   const { t, lang } = useTranslation();
@@ -46,15 +55,33 @@ export default function ProductScreen() {
   const [openDelivery, setOpenDelivery] = useState(false);
   const [openReturns, setOpenReturns] = useState(false);
 
-  const initialColor = product?.colors.find((color) => color.available) ?? null;
-  const initialSizes = initialColor?.sizes ?? product?.sizes ?? [];
+  const initialSelection = product
+    ? resolveInitialSelection(
+        product,
+        typeof colorParam === 'string' ? colorParam : null,
+        typeof sizeParam === 'string' ? sizeParam : null,
+      )
+    : null;
   const selectedColor =
-    product && selection.productId === product.id ? selection.colorId : initialColor?.id ?? null;
+    product && selection.productId === product.id
+      ? selection.colorId
+      : initialSelection?.colorId ?? null;
   const selectedSize =
     product && selection.productId === product.id
       ? selection.sizeId
-      : initialSizes.find((size) => size.available)?.id ?? null;
+      : initialSelection?.sizeId ?? null;
   const activeIndex = product && gallery.productId === product.id ? gallery.index : 0;
+
+  useEffect(() => {
+    if (!product) return;
+    const imageUrls = Array.from(
+      new Set([
+        ...product.colors.map((color) => color.images[0] ?? product.images[0]),
+        product.images[0],
+      ].filter((uri): uri is string => Boolean(uri) && /^https?:\/\//i.test(uri))),
+    ).slice(0, 4);
+    if (imageUrls.length > 0) void Image.prefetch(imageUrls, 'disk');
+  }, [product]);
 
   // The selected variation drives: images, available sizes, price, stock,
   // original price, discount and add-to-cart eligibility.
@@ -64,6 +91,7 @@ export default function ProductScreen() {
   const availableSizes = variation?.availableSizes ?? [];
   const showSizeSelector = availableSizes.length > 1;
   const showOneSize = !showSizeSelector && availableSizes.length > 0;
+  const selectedSizeLabel = variation?.size?.label ?? (showOneSize ? t('oneSize') : '');
 
   const stockText =
     variation?.stock === 0
@@ -188,9 +216,9 @@ export default function ProductScreen() {
           </ScrollView>
         ) : null}
 
-        {product.colors.length > 0 && dedicatedImages.length === 0 ? (
+        {product.colors.length > 0 && color && dedicatedImages.length === 0 ? (
           <AppText className="mt-2 px-[18px] text-[9px] text-muted">
-            {t('galleryAllProductImages')}
+            {galleryImages.length > 0 ? t('galleryAllProductImages') : t('galleryNoColorImages')}
           </AppText>
         ) : null}
 
@@ -237,6 +265,7 @@ export default function ProductScreen() {
                   key={c.id}
                   disabled={!c.available}
                   onPress={() => handleColorChange(c.id)}
+                  accessibilityState={{ selected: selectedColor === c.id }}
                   className={`h-[34px] w-[34px] items-center justify-center rounded-full border-2 ${
                     selectedColor === c.id ? 'border-wine' : 'border-transparent'
                   } ${!c.available ? 'opacity-40' : 'active:opacity-70'}`}
@@ -255,7 +284,7 @@ export default function ProductScreen() {
           <View className="mt-4 px-[18px]">
             <View className="flex-row items-center justify-between">
               <AppText weight={700} className="text-[12px] text-ink">
-                {t('size')} · {showSizeSelector ? selectedSize : t('oneSize')}
+                {t('size')} · {selectedSizeLabel}
               </AppText>
               {product.measurements?.length ? (
                 <Pressable onPress={() => router.push('/size-guide')}>

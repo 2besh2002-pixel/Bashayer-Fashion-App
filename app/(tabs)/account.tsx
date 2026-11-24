@@ -29,7 +29,7 @@ export default function AccountScreen() {
   if (!isAuthenticated) {
     return (
       <Screen edges={["top", "bottom"]}>
-        <View className="relative border-b border-line bg-paper px-4 py-3">
+        <View className="relative border-b border-line bg-paper px-4 py-7">
           <View className="absolute bottom-0 left-0 right-0 top-0 items-center justify-center">
             <AppText weight={700} align="center" className="text-[16px] text-ink">
               {t("titleProfile")}
@@ -67,7 +67,7 @@ export default function AccountScreen() {
 
   return (
     <Screen edges={["top", "bottom"]}>
-      <View className="relative border-b border-line bg-paper px-4 py-3">
+      <View className="relative border-b border-line bg-paper px-4 py-7">
         <View className="absolute bottom-0 left-0 right-0 top-0 items-center justify-center">
           <AppText weight={700} align="center" className="text-[16px] text-ink">
             {t("titleProfile")}

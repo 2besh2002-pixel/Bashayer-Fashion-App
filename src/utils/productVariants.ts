@@ -112,15 +112,41 @@ export function retainAvailableSize(
     : null;
 }
 
+/** Restore a requested variant when opening a product, or choose its first available options. */
+export function resolveInitialSelection(
+  product: Product,
+  preferredColorId: string | null = null,
+  preferredSizeId: string | null = null,
+): { colorId: string | null; sizeId: string | null } {
+  const colorId = product.colors.some(
+    (color) => color.id === preferredColorId && color.available,
+  )
+    ? preferredColorId
+    : (product.colors.find((color) => color.available)?.id ?? null);
+  const sizes = getSizeOptions(product, colorId);
+  const sizeId =
+    sizes.find((size) => size.id === preferredSizeId && size.available)?.id ??
+    sizes.find((size) => size.available)?.id ??
+    null;
+
+  return { colorId, sizeId };
+}
+
 /**
- * The images to display for a color selection:
- * - dedicated color images when they exist (authoritative),
- * - otherwise the product-level images (fallback across the whole product).
+ * The images to display for a color selection. Never reuse product photos
+ * already assigned to a different color as a fallback.
  */
 export function resolveVariationImages(product: Product, colorId: string | null): string[] {
   const color = getColor(product, colorId);
-  if (color?.images?.length) return color.images;
-  return product.images;
+  if (!color) return product.images;
+  if (color.images.length > 0) return color.images;
+
+  const imagesAssignedToOtherColors = new Set(
+    product.colors
+      .filter((otherColor) => otherColor.id !== color.id)
+      .flatMap((otherColor) => otherColor.images),
+  );
+  return product.images.filter((image) => !imagesAssignedToOtherColors.has(image));
 }
 
 /**

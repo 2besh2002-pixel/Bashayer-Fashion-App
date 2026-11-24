@@ -3,6 +3,7 @@ import {
   computeVariationPrice,
   generateSku,
   getVariationStock,
+  resolveInitialSelection,
   resolveVariation,
   resolveVariationImages,
   retainAvailableSize,
@@ -193,6 +194,18 @@ describe("variation pricing priority", () => {
     expect(retainAvailableSize(product, "ivory", "xl")).toBeNull();
     expect(retainAvailableSize(product, "ivory", "m")).toBe("m");
   });
+
+  test("restores a cart variant and falls back when a requested option is unavailable", () => {
+    const product = getProductById(5)!;
+    expect(resolveInitialSelection(product, "burgundy", "l")).toEqual({
+      colorId: "burgundy",
+      sizeId: "l",
+    });
+    expect(resolveInitialSelection(product, "ivory", "xl")).toEqual({
+      colorId: "ivory",
+      sizeId: "s",
+    });
+  });
 });
 
 describe("color-specific images", () => {
@@ -228,6 +241,15 @@ describe("color-specific images", () => {
     expect(resolveVariationImages(product1, "gray")).toEqual([GREY_DRESS]);
     // Burgundy's verified red dress image
     expect(resolveVariationImages(product1, "burgundy")).toEqual([BURGUNDY_PLATEAU_DRESS]);
+    expect(resolveVariationImages(product1, "ivory")).toEqual([]);
+  });
+
+  test("each product 5 color shows all of its own photos", () => {
+    const product5 = getProductById(5)!;
+    expect(resolveVariationImages(product5, "ivory")).toEqual([product5.colors[0].images[0]]);
+    expect(resolveVariationImages(product5, "burgundy")).toEqual([
+      product5.colors[1].images[0],
+    ]);
   });
 });
 

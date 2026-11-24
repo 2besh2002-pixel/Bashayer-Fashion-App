@@ -1,83 +1,161 @@
 /**
- * Centralized API client.
+ * Centralized API client — prepared only, NOT used in mock mode.
  *
- * No backend is connected at this stage. This module exists so that when a real
- * Middleware API is introduced, every network call flows through one place with
- * consistent base URL, headers, timeout and error normalisation. The mock
- * repositories in src/repositories do NOT use this client today.
+ * One place owns: base URL, Store ID, JSON headers, Bearer token, timeout,
+ * and safe error normalization. Mock repositories never import this module,
+ * so starting the app requires no backend and sends no requests.
  *
- * SECURITY: never place Salla / Middleware secret keys here. Only a public
- * base URL and per-request user access token belong on the device.
+ * SECURITY: no secret, password or customer token is ever logged or stored in
+ * this file. Tokens come from a provider (SecureStore) and are used only in a
+ * request header. See src/api/token.ts.
  */
 
-export interface ApiConfig {
-  /** Public base URL supplied by the store backend. Empty until configured. */
-  baseUrl: string;
-  timeoutMs?: number;
-}
+import { getEnvironment } from "@/src/config/environment";
+import {
+  ApiError,
+  configurationError,
+  httpError,
+  normalizeApiError,
+  shouldFallbackToMock,
+} from "@/src/api/errors";
 
-export class ApiError extends Error {
-  status: number;
-  constructor(message: string, status = 0) {
-    super(message);
-    this.name = "ApiError";
-    this.status = status;
-  }
+export interface ApiConfig {
+  /** Public base URL from EXPO_PUBLIC_API_BASE_URL. */
+  baseUrl: string;
+  /** Public Store ID from EXPO_PUBLIC_STORE_ID. Never hardcoded in logic. */
+  storeId: string;
+  timeoutMs: number;
 }
 
 export interface RequestOptions {
-  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+  method?: "GET" | "POST" | "PUT" | "DELETE";
   body?: unknown;
-  /** Short-lived user access token (kept in SecureStore, never hardcoded). */
+  /** Explicit token overrides the provider for one request. */
   token?: string | null;
-  query?: Record<string, string | number | boolean | undefined>;
+  query?: Record<string, string | number | boolean | undefined | null>;
 }
 
-const DEFAULT_CONFIG: ApiConfig = { baseUrl: "", timeoutMs: 15000 };
+type TokenProvider = () => string | null | undefined | Promise<string | null | undefined>;
+type UnauthorizedHandler = () => void | Promise<void>;
+type ConnectionFailureHandler = () => void;
 
-let config: ApiConfig = DEFAULT_CONFIG;
+const initial = getEnvironment();
+let config: ApiConfig = {
+  baseUrl: initial.apiBaseUrl,
+  storeId: initial.storeId,
+  timeoutMs: initial.timeoutMs,
+};
+
+let tokenProvider: TokenProvider | null = null;
+let unauthorizedHandler: UnauthorizedHandler | null = null;
+let connectionFailureHandler: ConnectionFailureHandler | null = null;
 
 export function configureApi(next: Partial<ApiConfig>): void {
-  config = { ...config, ...next };
+  config = {
+    ...config,
+    ...next,
+    ...(next.baseUrl !== undefined ? { baseUrl: next.baseUrl.replace(/\/+$/, "") } : {}),
+  };
 }
 
-function buildUrl(path: string, query?: RequestOptions["query"]): string {
+export function resetApiClientForTests(): void {
+  const env = getEnvironment();
+  config = { baseUrl: env.apiBaseUrl, storeId: env.storeId, timeoutMs: env.timeoutMs };
+  tokenProvider = null;
+  unauthorizedHandler = null;
+  connectionFailureHandler = null;
+}
+
+export function getApiConfig(): Readonly<ApiConfig> {
+  return { ...config };
+}
+
+/** Install the SecureStore-backed token provider (see src/api/token.ts). */
+export function setAuthTokenProvider(provider: TokenProvider | null): void {
+  tokenProvider = provider;
+}
+
+/** Called on 401/403 so an expired token is discarded, never logged. */
+export function setUnauthorizedHandler(handler: UnauthorizedHandler | null): void {
+  unauthorizedHandler = handler;
+}
+
+/** Notify the repository registry when the backend cannot provide a usable response. */
+export function setConnectionFailureHandler(handler: ConnectionFailureHandler | null): void {
+  connectionFailureHandler = handler;
+}
+
+/** Fail early with a safe message instead of calling a made-up URL. */
+export function assertApiReady(): void {
+  if (!config.baseUrl) throw configurationError("API base URL is not configured.");
+  if (!config.storeId) {
+    throw configurationError("Store ID is not configured. Set EXPO_PUBLIC_STORE_ID.");
+  }
+}
+
+export function buildUrl(path: string, query?: RequestOptions["query"]): string {
   const base = config.baseUrl.replace(/\/$/, "");
-  const url = `${base}${path}`;
+  const url = `${base}${path.startsWith("/") ? path : `/${path}`}`;
   if (!query) return url;
-  const usp = Object.entries(query)
-    .filter(([, v]) => v !== undefined)
-    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`)
+  const parts = Object.entries(query)
+    .filter(([, value]) => value !== undefined && value !== null)
+    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`)
     .join("&");
-  return usp ? `${url}?${usp}` : url;
+  return parts ? `${url}?${parts}` : url;
 }
 
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { method = "GET", body, token, query } = options;
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), config.timeoutMs);
+  const { method = "GET", body, query } = options;
+  try {
+    assertApiReady();
+  } catch (error) {
+    const apiError = normalizeApiError(error);
+    if (shouldFallbackToMock(apiError)) connectionFailureHandler?.();
+    throw apiError;
+  }
+
+  const resolvedToken =
+    options.token !== undefined ? options.token : await tokenProvider?.();
+
+  const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+  const timer = controller ? setTimeout(() => controller.abort(), config.timeoutMs) : null;
 
   try {
-    const res = await fetch(buildUrl(path, query), {
+    const response = await fetch(buildUrl(path, query), {
       method,
       headers: {
+        Accept: "application/json",
         "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(resolvedToken ? { Authorization: `Bearer ${resolvedToken}` } : {}),
       },
-      body: body === undefined ? undefined : JSON.stringify(body),
-      signal: controller.signal,
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+      ...(controller ? { signal: controller.signal } : {}),
     });
 
-    if (!res.ok) {
-      throw new ApiError(`Request failed with status ${res.status}`, res.status);
+    if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
+        try {
+          await unauthorizedHandler?.();
+        } catch {
+          // Clearing a token must never mask the original error.
+        }
+      }
+      throw httpError(response.status);
     }
-    const text = await res.text();
-    return (text ? JSON.parse(text) : undefined) as T;
-  } catch (err) {
-    if (err instanceof ApiError) throw err;
-    throw new ApiError(err instanceof Error ? err.message : "Network error");
+
+    const text = await response.text();
+    if (!text) return undefined as T;
+    try {
+      return JSON.parse(text) as T;
+    } catch {
+      throw new ApiError("The service returned an unexpected response.", 0, "invalid-response");
+    }
+  } catch (error) {
+    const apiError = normalizeApiError(error);
+    if (shouldFallbackToMock(apiError)) connectionFailureHandler?.();
+    throw apiError;
   } finally {
-    clearTimeout(timer);
+    if (timer !== null) clearTimeout(timer);
   }
 }
 
@@ -86,4 +164,11 @@ export const apiClient = {
     request<T>(path, { ...options, method: "GET" }),
   post: <T>(path: string, body?: unknown, options?: Omit<RequestOptions, "method" | "body">) =>
     request<T>(path, { ...options, method: "POST", body }),
+  put: <T>(path: string, body?: unknown, options?: Omit<RequestOptions, "method" | "body">) =>
+    request<T>(path, { ...options, method: "PUT", body }),
+  delete: <T>(path: string, options?: Omit<RequestOptions, "method" | "body">) =>
+    request<T>(path, { ...options, method: "DELETE" }),
 };
+
+/** Re-exported as a value so callers can use `instanceof ApiError`. */
+export { ApiError };

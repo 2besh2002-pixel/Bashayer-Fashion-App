@@ -1,4 +1,5 @@
-import { Image, View } from "react-native";
+import { Image } from "expo-image";
+import { StyleSheet, View } from "react-native";
 
 import { Icon } from "@/src/components/ui/Icon";
 
@@ -21,5 +22,15 @@ export function ProductImage({
       </View>
     );
   }
-  return <Image source={{ uri }} className={className} resizeMode={resizeMode} />;
+  return (
+    <View className={`${className} overflow-hidden bg-[#eee9e2]`}>
+      <Image
+        source={uri}
+        style={StyleSheet.absoluteFill}
+        contentFit={resizeMode}
+        cachePolicy="memory-disk"
+        transition={120}
+      />
+    </View>
+  );
 }

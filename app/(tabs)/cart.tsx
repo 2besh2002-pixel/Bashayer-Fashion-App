@@ -33,10 +33,21 @@ export default function CartScreen() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const [authPrompt, setAuthPrompt] = useState(false);
 
+  const openProduct = (productId: number, colorId: string | null, sizeId: string | null) => {
+    router.push({
+      pathname: "/product/[id]",
+      params: {
+        id: String(productId),
+        ...(colorId ? { colorId } : {}),
+        ...(sizeId ? { sizeId } : {}),
+      },
+    });
+  };
+
   if (lines.length === 0 && (isLoading || hasError)) {
     return (
       <Screen edges={["top", "bottom"]}>
-        <View className="relative border-b border-line bg-paper px-4 py-3">
+        <View className="relative border-b border-line bg-paper px-4 py-7">
           <View className="absolute bottom-0 left-0 right-0 top-0 items-center justify-center">
             <AppText weight={700} align="center" className="text-[16px] text-ink">
               {t("titleCart")}
@@ -53,7 +64,7 @@ export default function CartScreen() {
   if (lines.length === 0) {
     return (
       <Screen edges={["top", "bottom"]}>
-        <View className="relative border-b border-line bg-paper px-4 py-3">
+        <View className="relative border-b border-line bg-paper px-4 py-7">
           <View className="absolute bottom-0 left-0 right-0 top-0 items-center justify-center">
             <AppText weight={700} align="center" className="text-[16px] text-ink">
               {t("titleCart")}
@@ -78,7 +89,7 @@ export default function CartScreen() {
 
   return (
     <Screen edges={["top", "bottom"]}>
-      <View className="relative border-b border-line bg-paper px-4 py-3">
+      <View className="relative border-b border-line bg-paper px-4 py-7">
         <View className="absolute bottom-0 left-0 right-0 top-0 items-center justify-center">
           <AppText weight={700} align="center" className="text-[16px] text-ink">
             {t("titleCart")}
@@ -101,7 +112,7 @@ export default function CartScreen() {
           // back to resolving from the catalogue for pre-migration lines.
           const unitPrice = lineUnitPrice(item, product);
           const variation = resolveVariation(product, item.colorId, item.sizeId);
-          const image = item.image || product.images[0];
+          const image = variation.images[0] || item.image || product.images[0];
           const colorLabel =
             item.colorName ?? product.colors.find((c) => c.id === item.colorId)?.name;
           const colorName = colorLabel ? pick(colorLabel, lang) : t("noOptions");
@@ -117,14 +128,14 @@ export default function CartScreen() {
             >
               <Pressable
                 accessibilityRole="button"
-                onPress={() => router.push(`/product/${product.id}`)}
+                onPress={() => openProduct(product.id, item.colorId, item.sizeId)}
               >
                 <ProductImage uri={image} className="h-[80px] w-[68px] rounded-xl" />
               </Pressable>
               <View className="flex-1">
                 <Pressable
                   accessibilityRole="button"
-                  onPress={() => router.push(`/product/${product.id}`)}
+                  onPress={() => openProduct(product.id, item.colorId, item.sizeId)}
                 >
                   <AppText weight={600} className="text-[11px] text-ink">
                     {pick(item.productName ?? product.name, lang)}

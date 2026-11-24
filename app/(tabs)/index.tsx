@@ -18,6 +18,7 @@ import { MAIN_CATEGORIES } from '@/src/data/categories';
 import { pick } from '@/src/utils/format';
 import type { Product } from '@/src/types';
 import { useCatalogProducts } from '@/src/hooks/useCatalogProducts';
+import { getRepositorySource } from '@/src/repositories';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -26,6 +27,7 @@ export default function HomeScreen() {
   const toggleLang = useSettingsStore((s) => s.toggleLang);
   const showToast = useUiStore((s) => s.showToast);
   const { products, isLoading, hasError, retry } = useCatalogProducts();
+  const sourceNotice = getRepositorySource() === 'mock' ? t('mockModeNotice') : t('apiModeNotice');
 
   const [currencyVisible, setCurrencyVisible] = useState(false);
   const [logoutVisible, setLogoutVisible] = useState(false);
@@ -126,6 +128,9 @@ export default function HomeScreen() {
         )}
 
         <AppText className="mt-4 px-[18px] text-center text-[9px] text-muted">
+          {sourceNotice}
+        </AppText>
+        <AppText className="mt-1 px-[18px] text-center text-[9px] text-muted">
           {t('prototypeNote')}
         </AppText>
       </ScrollView>

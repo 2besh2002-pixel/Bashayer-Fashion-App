@@ -1,5 +1,5 @@
 import type { Lang, Product } from "@/src/types";
-import type { CatalogRepository } from "@/src/repositories/types";
+import type { CatalogQuery, CatalogRepository, ProductPage } from "@/src/repositories/types";
 import { MAIN_CATEGORIES } from "@/src/data/categories";
 import { PRODUCTS, getProductById } from "@/src/data/products";
 import { pick } from "@/src/utils/format";
@@ -39,5 +39,26 @@ export const mockCatalogRepository: CatalogRepository = {
   },
   async search(query, lang) {
     return PRODUCTS.filter((p) => matches(p, query, lang));
+  },
+  /**
+   * Local equivalent of the documented pagination/filter parameters. It keeps
+   * the existing local filters (both languages, category labels) working while
+   * mirroring the API's page / per_page / category_id / search contract.
+   */
+  async listProductsPaged(query: CatalogQuery = {}): Promise<ProductPage> {
+    const page = Math.max(1, Math.floor(query.page ?? 1));
+    const perPage = Math.min(100, Math.max(1, Math.floor(query.perPage ?? 20)));
+    let list = PRODUCTS;
+    if (query.categoryId) {
+      list = list.filter((p) => p.categoryId === query.categoryId);
+    }
+    if (query.search && query.search.trim()) {
+      const term = query.search;
+      list = list.filter((p) => matches(p, term, "ar") || matches(p, term, "en"));
+    }
+    const total = list.length;
+    const totalPages = Math.max(1, Math.ceil(total / perPage));
+    const start = (page - 1) * perPage;
+    return { items: list.slice(start, start + perPage), page, perPage, total, totalPages };
   },
 };

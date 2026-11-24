@@ -15,6 +15,10 @@ export const translations = {
     ar: "محتوى وأسعار العرض توضيحية للنموذج الأولي.",
     en: "Product content and prices are illustrative prototype data.",
   },
+  mockModeNotice: {
+    ar: "تُعرض الآن بيانات محلية تجريبية محفوظة على هذا الجهاز.",
+    en: "Local demo data is active and stays on this device.",
+  },
   demoBadge: { ar: "نسخة تجريبية محلية", en: "Local demo build" },
   editScreenOpenCode: {
     ar: "افتحي الشيفرة البرمجية لهذه الشاشة:",
@@ -110,8 +114,12 @@ export const translations = {
   itemUnavailable: { ar: "القطعة غير متاحة حالياً", en: "This piece is unavailable" },
   oneSize: { ar: "مقاس واحد", en: "One Size" },
   galleryAllProductImages: {
-    ar: "عرض جميع صور المنتج لأن هذا اللون لا يملك صوره الخاصة",
-    en: "Showing all product images because this color has no dedicated images",
+    ar: "لا توجد صور مخصصة لهذا اللون؛ تُعرض صور المنتج العامة إن وُجدت",
+    en: "No photos are assigned to this color; showing unassigned product photos if available",
+  },
+  galleryNoColorImages: {
+    ar: "لا تتوفر صورة لهذا اللون حالياً",
+    en: "No photo is available for this color yet",
   },
   addToCart: { ar: "أضيفي إلى السلة", en: "Add to cart" },
   savePercent: { ar: "وفّري", en: "Save" },
@@ -557,6 +565,14 @@ export const translations = {
     ar: "معاينة واجهة فقط — لم يتم إرسال رمز SMS فعلي. أدخلي أي ٤ أرقام لاستعراض حالة النجاح.",
     en: "UI preview only — no real SMS was sent. Enter any 4 digits to preview the success state.",
   },
+  otpServerDisclosure: {
+    ar: "تم طلب رمز التحقق من خادم المتجر. استخدمي الرمز الذي يصلكِ على جوالكِ.",
+    en: "A verification code was requested from the store server. Use the code sent to your phone.",
+  },
+  smsServerDisclosure: {
+    ar: "تم التحقق من رقم الجوال عبر خادم المتجر.",
+    en: "Your phone number was verified by the store server.",
+  },
   resendIn: { ar: "يمكنكِ إعادة الإرسال بعد", en: "You can resend in" },
   resendCode: { ar: "إعادة إرسال الرمز", en: "Resend code" },
   verifyContinue: { ar: "تحقق ومتابعة", en: "Verify and continue" },
@@ -600,6 +616,44 @@ export const translations = {
   subcategories: { ar: "الأقسام الفرعية", en: "Subcategories" },
   allCategoryItems: { ar: "كل القطع", en: "All items" },
   filterBySubcategory: { ar: "تصفية حسب القسم الفرعي", en: "Filter by subcategory" },
+
+  // ---------- Future API errors (prepared, not shown in mock mode) ----------
+  apiNetworkError: {
+    ar: "تعذّر الاتصال بالخادم. تأكدي من الإنترنت ثم حاولي مجدداً.",
+    en: "Could not reach the server. Check your connection and try again.",
+  },
+  apiTimeout: { ar: "استغرق الطلب وقتاً طويلاً. حاولي مجدداً.", en: "The request timed out. Try again." },
+  apiValidationError: { ar: "بعض البيانات غير صحيحة. راجعي الإدخال.", en: "Some details are invalid. Please review them." },
+  apiUnauthorized: {
+    ar: "انتهت جلستكِ. سجّلي الدخول مجدداً.",
+    en: "Your session expired. Please sign in again.",
+  },
+  apiForbidden: { ar: "لا يمكنكِ الوصول إلى هذا المتجر.", en: "You do not have access to this store." },
+  apiNotFound: { ar: "لم يتم العثور على العنصر المطلوب.", en: "The requested item was not found." },
+  apiRateLimited: {
+    ar: "طلبات كثيرة جداً. انتظري قليلاً ثم حاولي مجدداً.",
+    en: "Too many requests. Wait a moment and try again.",
+  },
+  apiUnavailable: {
+    ar: "الخدمة غير متاحة مؤقتاً. حاولي لاحقاً.",
+    en: "The service is temporarily unavailable. Try again later.",
+  },
+  apiNotConfigured: {
+    ar: "إعدادات الربط بالخادم غير مكتملة.",
+    en: "The server configuration is incomplete.",
+  },
+  apiUnexpectedResponse: {
+    ar: "حدث خطأ غير متوقع. حاولي مجدداً.",
+    en: "Something went wrong. Try again.",
+  },
+  apiModeNotice: {
+    ar: "وضع API مفعّل. إذا تعذّر الخادم، ينتقل التطبيق إلى البيانات المحلية التجريبية.",
+    en: "API mode is selected. If the server is unavailable, the app switches to local demo data.",
+  },
+  apiUnsupportedAuth: {
+    ar: "تسجيل الدخول بالبريد غير متاح في وضع API. استخدمي رقم الجوال ورمز التحقق.",
+    en: "Email/password sign-in is not available in API mode. Use the phone OTP flow.",
+  },
 } as const;
 
 export type TranslationKey = keyof typeof translations;

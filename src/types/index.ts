@@ -116,6 +116,16 @@ export interface Product {
   measurements?: ProductMeasurementRow[];
   /** Free-text material/care note shown only when provided by real data. */
   materialNote?: Localized;
+
+  // ---- Future Middleware mapping boundary (additive, UI must not rely on it) ----
+  /** Original API id. Needed to call documented cart/product endpoints later. */
+  remoteId?: string;
+  /** Salla merchant-side id, when the backend returns one. */
+  remoteSallaId?: string;
+  /** Raw quantity from the API; variation stock is NOT confirmed by the docs. */
+  remoteQuantity?: number | null;
+  /** Raw SKU from the API, when present. */
+  remoteSku?: string | null;
 }
 
 export interface Category {
@@ -222,6 +232,17 @@ export interface Order {
   currencyAtCheckout: CurrencyCode;
   /** Clearly marks locally generated demo orders. */
   isDemo: boolean;
+
+  // ---- Future Middleware mapping boundary (additive) ----
+  /** ID of the selected address for POST /orders. */
+  addressId?: string;
+  /** Only "cod" is documented by the API; UI also offers "card". */
+  paymentMethod?: "card" | "cod";
+  note?: string;
+  /** Human reference returned by the backend, when available. */
+  referenceId?: string;
+  /** Original API order id used by GET /orders/:orderId. */
+  remoteId?: string;
 }
 
 export interface Notification {
@@ -240,4 +261,18 @@ export interface CurrencyDefinition {
   name: Localized;
   /** Units of this currency per 1 SAR (local demonstration rates). */
   perSar: number;
+}
+
+/**
+ * App-facing snapshot of GET /v1/store/:storeId/config.
+ * The local `store-configs/index.ts` stays authoritative in mock mode; this
+ * snapshot is only produced by the prepared API config repository.
+ */
+export interface StoreConfigSnapshot {
+  storeId: string;
+  name: string;
+  logo?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
+  currency: CurrencyCode;
 }
