@@ -104,6 +104,15 @@ export function buildUrl(path: string, query?: RequestOptions["query"]): string 
   return parts ? `${url}?${parts}` : url;
 }
 
+/**
+ * Perform one HTTP request with the shared configuration and error policy.
+ *
+ * Resolves a token from the provider (unless a per-request token is supplied),
+ * applies the configured timeout, clears the JWT on 401/403 without masking the
+ * original error, and notifies the repository registry when a connectivity or
+ * server failure should trigger the mock fallback. Every thrown value is
+ * normalized to ApiError; response bodies are never logged.
+ */
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = "GET", body, query } = options;
   try {

@@ -44,6 +44,13 @@ function clampQuantity(q: number, ceiling = MAX_QUANTITY): number {
   return Math.min(ceiling, Math.max(MIN_QUANTITY, Math.round(q)));
 }
 
+/**
+ * Insert or merge a cart line, clamping the resulting quantity to stock.
+ *
+ * Identity is the variant line id, so the same colour/size combination is
+ * merged while different combinations remain separate lines. The stock limit
+ * may come from either the incoming line or the line already in the bag.
+ */
 function addItemToItems(items: CartItem[], item: CartItem, quantity: number): CartItem[] {
   const id = item.id;
   const existing = items.find((i) => i.id === id);

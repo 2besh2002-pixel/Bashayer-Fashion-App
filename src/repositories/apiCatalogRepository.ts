@@ -20,6 +20,13 @@ import { currentStoreId } from "@/src/repositories/apiShared";
 /** Docs: per_page default 20, maximum 100. */
 const MAX_PER_PAGE = 100;
 
+/**
+ * Validate a documented products response before mapping it.
+ *
+ * An empty first page without an active filter is treated as an invalid
+ * response (and therefore as a fallback-eligible failure), while empty
+ * filtered or later pages are legitimate results.
+ */
 function requireProductPage(
   value: ApiProductPage | null | undefined,
   allowEmpty: boolean,

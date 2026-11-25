@@ -72,6 +72,15 @@ setConnectionFailureHandler(() => {
   connectionFailed = true;
 });
 
+/**
+ * Wrap an API repository so each method falls back to its mock counterpart.
+ *
+ * Method lookup is delegated through a Proxy: mock data is used immediately
+ * when API mode is off or a previous connectivity failure switched the session
+ * to mock. Otherwise the API method runs; fallback-eligible errors mark the
+ * session as failed and retry the call against the mock implementation, while
+ * validation/auth/not-found errors are rethrown unchanged.
+ */
 function withMockFallback<T extends object>(apiRepository: T, mockRepository: T): T {
   return new Proxy(apiRepository, {
     get(_target, property) {

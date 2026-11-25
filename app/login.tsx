@@ -190,6 +190,11 @@ export default function LoginScreen() {
     setStage('otp');
   };
 
+  /**
+   * Update one OTP box. A multi-digit value (for example a pasted code) is
+   * spread across the boxes from the current index, or fills all boxes when a
+   * complete code is pasted, and focus advances to the next empty box.
+   */
   const updateOtp = (index: number, value: string) => {
     const digits = value.replace(/\D/g, '');
 

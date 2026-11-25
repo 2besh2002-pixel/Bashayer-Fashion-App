@@ -62,6 +62,14 @@ function hashRemoteId(value: string): number {
   return 100000 + (Math.abs(hash >>> 0) % 900000);
 }
 
+/**
+ * Map a remote string product id to the numeric id the UI routes expect.
+ *
+ * Uses a deterministic FNV-1a hash kept well above the mock id range, with a
+ * bidirectional registry so repeated mappings stay stable and collisions are
+ * resolved by linear probing. `resolveRemoteProductId` performs the reverse
+ * lookup when posting to documented cart endpoints.
+ */
 export function remoteProductIdToLocalId(remoteId: string): number {
   const known = remoteToLocal.get(remoteId);
   if (known !== undefined) return known;

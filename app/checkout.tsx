@@ -73,6 +73,12 @@ export default function CheckoutScreen() {
     setAddrForm({ recipient: '', city: '', line: '' });
   };
 
+  /**
+   * Build the demo order from the current bag and persist it through the
+   * active repository. Totals stay in SAR; card payment fields are not stored,
+   * and only documented fields are sent when the API repository is active.
+   * The cart is cleared only after the repository call resolves.
+   */
   const placeOrder = async () => {
     if (!isAuthenticated) {
       setAuthPrompt(true);
